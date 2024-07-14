@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
+import 'theme.dart';  // Add this import
 
 class NavigationPage extends StatefulWidget {
   @override
@@ -12,14 +13,15 @@ class _NavigationPageState extends State<NavigationPage> {
   static const List<Widget> _pages = <Widget>[
     Center(child: Text('Home Page', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
     Center(child: Text('Search Page', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
-    Center(child: Text('Profile Page', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
+    Center(child: Text('Notifications Page', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
+    Center(child: Text('Settings Page', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flutter Navigation Bar'),
+        title: const Text(''),
       ),
       body: _pages[_currentIndex],
       bottomNavigationBar: Padding(
@@ -46,9 +48,14 @@ class _NavigationPageState extends State<NavigationPage> {
                   selectedColor: Colors.orange,
                 ),
                 SalomonBottomBarItem(
-                  icon: Icon(Icons.person),
-                  title: Text('Profile'),
-                  selectedColor: Colors.teal,
+                  icon: Icon(Icons.notifications),
+                  title: Text('Notifications'),
+                  selectedColor: Colors.red,
+                ),
+                SalomonBottomBarItem(
+                  icon: Icon(Icons.settings),
+                  title: Text('Settings'),
+                  selectedColor: Colors.blue,
                 ),
               ],
             ),
