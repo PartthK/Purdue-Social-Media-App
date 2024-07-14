@@ -1,1 +1,1 @@
-Purdue Social Media App-1
+Purdue Social Media App
