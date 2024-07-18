@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1058895914101",
+    "project_id": "socialappmark1-b6139",
+    "storage_bucket": "socialappmark1-b6139.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058895914101:android:00278ff6a7649bc751443c",
+        "android_client_info": {
+          "package_name": "com.ub.purdue_social"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaRxwNsWS_8r28KniECt9QrlNh4kyovYE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

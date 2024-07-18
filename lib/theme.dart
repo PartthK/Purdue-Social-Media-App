@@ -3,29 +3,44 @@ import 'package:flutter/material.dart';
 class BoilerVibeTheme {
   static ThemeData get theme {
     return ThemeData(
-      colorScheme: ColorScheme.fromSwatch().copyWith(
-        primary: Color(0xFF111111),  // Dark brown color
-        secondary: Color(0xFFFFA726),  // Orange color
-      ),
-      scaffoldBackgroundColor: Colors.white,  // White background color
+      primaryColor: Colors.black,
+      hintColor: Colors.white,
+      scaffoldBackgroundColor: Colors.white,
       appBarTheme: AppBarTheme(
-        backgroundColor: Color(0xFF111111),
+        backgroundColor: Colors.black,
         titleTextStyle: TextStyle(
-          color: Color(0xFFFFA726),
-          fontSize: 24,
+          color: Colors.white,
+          fontFamily: 'Montserrat',
+          fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
-      ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: Color(0xFF111111),
-        selectedItemColor: Color(0xFFFFA726),
-        unselectedItemColor: Colors.grey,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       textTheme: TextTheme(
-        bodyLarge: TextStyle(color: Colors.black),
-        bodyMedium: TextStyle(color: Colors.black),
+        headlineLarge: TextStyle(
+          color: Colors.black,
+          fontFamily: 'Montserrat',
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+        ),
+        bodyMedium: TextStyle(
+          color: Colors.black,
+          fontFamily: 'Montserrat',
+          fontSize: 16,
+        ),
+        bodySmall: TextStyle(
+          color: Colors.black,
+          fontFamily: 'Montserrat',
+          fontSize: 14,
+        ),
       ),
-      visualDensity: VisualDensity.adaptivePlatformDensity,
+      buttonTheme: ButtonThemeData(
+        buttonColor: Colors.black,
+        textTheme: ButtonTextTheme.primary,
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: Colors.black,
+      ),
     );
   }
 }
