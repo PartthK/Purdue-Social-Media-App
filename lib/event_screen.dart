@@ -1,8 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// event_screen.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'event_model.dart'; // Import your event model
 import 'theme.dart'; // Import your theme configuration if needed
+import 'event_detail_screen.dart';
 
 class EventScreen extends StatefulWidget {
   @override
@@ -10,6 +12,7 @@ class EventScreen extends StatefulWidget {
 }
 
 class _EventScreenState extends State<EventScreen> {
+  final EventService eventService = EventService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -27,7 +30,7 @@ class _EventScreenState extends State<EventScreen> {
     );
 
     try {
-      await _firestore.collection('events').doc(id).set(event.toMap());
+      await eventService.addEvent(event);
       _titleController.clear();
       _descriptionController.clear();
       _locationController.clear();
@@ -146,20 +149,22 @@ class _EventScreenState extends State<EventScreen> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('events').snapshots(),
+        child: StreamBuilder<List<Event>>(
+          stream: eventService.getEvents(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
             }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(child: Text('No events available'));
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
             }
 
-            final events = snapshot.data!.docs.map((doc) {
-              return Event.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-            }).toList();
+            final events = snapshot.data ?? [];
+
+            if (events.isEmpty) {
+              return Center(child: Text('No events available'));
+            }
 
             return ListView.builder(
               itemCount: events.length,
@@ -180,6 +185,14 @@ class _EventScreenState extends State<EventScreen> {
                         Text('Date: ${event.date.toLocal().toString().split(' ')[0]}', style: GoogleFonts.montserrat()),
                       ],
                     ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EventDetailScreen(event: event),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
