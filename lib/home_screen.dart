@@ -1,13 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:purdue_social/profile_screen.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+import 'auth_provider.dart';
 import 'event_screen.dart'; // Import your event screen
 import 'search_screen.dart'; // Import your search screen
 import 'notifications_screen.dart'; // Import your notifications screen
 import 'settings_screen.dart'; // Import your settings screen
-import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'auth_screen.dart'; // Import your auth screen
+import 'auth_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -22,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final isDarkMode = themeData.brightness == Brightness.dark;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,6 +60,15 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Iconsax.user,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+            onPressed: () => _showProfileOptions(context),
+          ),
+        ],
       ),
       drawer: Drawer(
         child: Container(
@@ -257,10 +272,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _launchURL(String url) async {
-    // Implement your URL launcher here
-  }
-
   void _showAddEventModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -387,5 +398,52 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedDate = DateTime.now();
     });
+  }
+
+  void _launchURL(String url) async {
+    // Add your logic to launch the URL
+  }
+
+  void _showProfileOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Iconsax.user, color: Theme.of(context).primaryColor),
+                title: Text('View Profile', style: GoogleFonts.montserrat()),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Navigate to Profile Screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Iconsax.logout, color: Colors.red),
+                title: Text('Logout', style: GoogleFonts.montserrat(color: Colors.red)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Provider.of<AuthProvider>(context, listen: false).logout();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => AuthScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
