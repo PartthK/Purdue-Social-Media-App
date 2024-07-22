@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'event_model.dart';
-import 'auth_provider.dart'; // Assuming you have this provider for authentication
+import 'package:firebase_auth/firebase_auth.dart'; // Assuming FirebaseAuth is used for authentication
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -17,47 +17,33 @@ class EventDetailScreen extends StatefulWidget {
 class _EventDetailScreenState extends State<EventDetailScreen> {
   bool _hasRSVPed = false;
   String? _userId;
+  late int _currentRSVPCount;
 
   @override
   void initState() {
     super.initState();
+    _currentRSVPCount = widget.event.rsvpCount;
     _fetchUserIdAndCheckRSVP();
   }
 
   Future<void> _fetchUserIdAndCheckRSVP() async {
-    // Assuming you have a method to get the current user's email
-    String? userEmail = await _getUserEmail();
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _userId = user.email;
 
-    if (userEmail != null) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(userEmail).get();
-
-      if (userSnapshot.exists) {
-        setState(() {
-          _userId = userSnapshot.id;
-        });
-
-        DocumentSnapshot rsvpSnapshot = await FirebaseFirestore.instance
-            .collection('events')
-            .doc(widget.event.documentId)
-            .collection('rsvps')
+      if (_userId != null) {
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
             .doc(_userId)
             .get();
 
+        List<dynamic> rsvpEvents = userSnapshot['rsvpEvents'] ?? [];
+
         setState(() {
-          _hasRSVPed = rsvpSnapshot.exists;
+          _hasRSVPed = rsvpEvents.contains(widget.event.documentId);
         });
       }
     }
-  }
-
-  Future<String?> _getUserEmail() async {
-    // Fetch the current user's email from your authentication provider
-    // This is just a placeholder. Replace it with actual code to get the user email.
-    // For example, if using FirebaseAuth:
-    // return FirebaseAuth.instance.currentUser?.email;
-
-    // For the purpose of this example, returning a placeholder email
-    return 'kulka142@purdue.edu'; // Replace with actual method to get current user email
   }
 
   @override
@@ -73,7 +59,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           children: [
             Text('Title: ${widget.event.title}'),
             Text('Created By: ${widget.event.createdBy}'),
-            Text('RSVP Count: ${widget.event.rsvpCount}'),
+            Text('RSVP Count: $_currentRSVPCount'),
             Text('Date: ${widget.event.date}'),
             Text('Description: ${widget.event.description}'),
             RichText(
@@ -116,7 +102,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             SizedBox(height: 20),
             if (!_hasRSVPed)
               ElevatedButton(
-                onPressed: () => _incrementRSVPCount(widget.event.documentId, widget.event.rsvpCount),
+                onPressed: () => _incrementRSVPCount(widget.event.documentId),
                 child: Text('RSVP'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
@@ -135,21 +121,29 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
-  void _incrementRSVPCount(String documentId, int currentCount) async {
+  void _incrementRSVPCount(String documentId) async {
     if (_userId != null) {
       FirebaseFirestore.instance.runTransaction((transaction) async {
         DocumentReference eventRef = FirebaseFirestore.instance.collection('events').doc(documentId);
+        DocumentReference userRef = FirebaseFirestore.instance.collection('users').doc(_userId);
 
-        // Increment the RSVP count
-        transaction.update(eventRef, {'rsvpCount': currentCount + 1});
+        DocumentSnapshot eventSnapshot = await transaction.get(eventRef);
+        DocumentSnapshot userSnapshot = await transaction.get(userRef);
 
-        // Add the user to the RSVPs sub-collection
-        DocumentReference rsvpRef = eventRef.collection('rsvps').doc(_userId);
-        transaction.set(rsvpRef, {'timestamp': FieldValue.serverTimestamp()});
-      });
-
-      setState(() {
-        _hasRSVPed = true;
+        if (!userSnapshot['rsvpEvents'].contains(documentId)) {
+          int newRSVPCount = eventSnapshot['rsvpCount'] + 1;
+          transaction.update(eventRef, {'rsvpCount': newRSVPCount});
+          transaction.update(userRef, {
+            'rsvpEvents': FieldValue.arrayUnion([documentId])
+          });
+        }
+      }).then((_) {
+        setState(() {
+          _currentRSVPCount += 1;
+          _hasRSVPed = true;
+        });
+      }).catchError((error) {
+        print("Failed to RSVP: $error");
       });
     }
   }
