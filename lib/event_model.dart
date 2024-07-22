@@ -1,54 +1,52 @@
-// event_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Event {
-  final String id;
-  final String title;
+  final String documentId;
+  final String createdBy;
+  final int rsvpCount;
+  final DateTime date;
   final String description;
   final String location;
-  final DateTime date;
+  final String locationMap;
+  final String title;
+  final String username;
 
   Event({
-    required this.id,
-    required this.title,
+    required this.documentId,
+    required this.createdBy,
+    required this.rsvpCount,
+    required this.date,
     required this.description,
     required this.location,
-    required this.date,
+    required this.locationMap,
+    required this.title,
+    required this.username,
   });
 
-  factory Event.fromDocument(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  factory Event.fromJson(String id, Map<String, dynamic> json) {
     return Event(
-      id: doc.id,
-      title: data['title'],
-      description: data['description'],
-      location: data['location'],
-      date: (data['date'] as Timestamp).toDate(),
+      documentId: id,
+      createdBy: json['createdBy'] ?? '',
+      rsvpCount: json['rsvpCount'] ?? 0,
+      date: (json['date'] as Timestamp).toDate(),
+      description: json['description'] ?? '',
+      location: json['location'] ?? '',
+      locationMap: json['locationMap'] ?? '',
+      title: json['title'] ?? '',
+      username: json['username'] ?? '',
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'title': title,
+      'createdBy': createdBy,
+      'rsvpCount': rsvpCount,
+      'date': Timestamp.fromDate(date),
       'description': description,
       'location': location,
-      'date': date,
+      'locationMap': locationMap,
+      'title': title,
+      'username': username,
     };
-  }
-}
-
-class EventService {
-  final CollectionReference eventCollection = FirebaseFirestore.instance.collection('events');
-
-  Stream<List<Event>> getEvents() {
-    return eventCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Event.fromDocument(doc);
-      }).toList();
-    });
-  }
-
-  Future<void> addEvent(Event event) async {
-    await eventCollection.doc(event.id).set(event.toMap());
   }
 }

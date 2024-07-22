@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:purdue_social/profile_screen.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'auth_provider.dart';
-import 'event_screen.dart'; // Import your event screen
-import 'search_screen.dart'; // Import your search screen
-import 'notifications_screen.dart'; // Import your notifications screen
-import 'settings_screen.dart'; // Import your settings screen
-import 'auth_screen.dart'; // Import your auth screen
-import 'auth_provider.dart';
+import 'event_screen.dart';
+import 'search_screen.dart';
+import 'notifications_screen.dart';
+import 'settings_screen.dart';
+import 'auth_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -21,7 +21,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  bool isDarkMode = false; // You can replace this with your theme provider logic
+  bool isDarkMode = false;
+
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _createdByController = TextEditingController();
+  final TextEditingController _locationMapController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
       )
           : null,
       bottomNavigationBar: Container(
-        height: 80.0, // Adjust height of the navigation bar
+        height: 80.0,
         decoration: BoxDecoration(
           color: isDarkMode ? Colors.black87 : Color(0xe8f3f1f7),
           borderRadius: BorderRadius.only(
@@ -187,45 +196,45 @@ class _HomeScreenState extends State<HomeScreen> {
           unselectedItemColor: isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.7),
           items: [
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.home, size: 24.0), // Adjust icon size
+              icon: Icon(Iconsax.home, size: 24.0),
               title: Text(
                 'Home',
                 style: GoogleFonts.montserrat(
-                  fontSize: 12.0, // Decreased text size
-                  fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal, // Bold if selected
+                  fontSize: 12.0,
+                  fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               selectedColor: isDarkMode ? Colors.white : Colors.black,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.search_normal, size: 24.0), // Adjust icon size
+              icon: Icon(Iconsax.search_normal, size: 24.0),
               title: Text(
                 'Search',
                 style: GoogleFonts.montserrat(
-                  fontSize: 12.0, // Decreased text size
-                  fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal, // Bold if selected
+                  fontSize: 12.0,
+                  fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               selectedColor: Colors.deepPurple,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.notification, size: 24.0), // Adjust icon size
+              icon: Icon(Iconsax.notification, size: 24.0),
               title: Text(
                 'Notifications',
                 style: GoogleFonts.montserrat(
-                  fontSize: 12.0, // Decreased text size
-                  fontWeight: _selectedIndex == 2 ? FontWeight.bold : FontWeight.normal, // Bold if selected
+                  fontSize: 12.0,
+                  fontWeight: _selectedIndex == 2 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               selectedColor: Colors.pink,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.setting, size: 24.0), // Adjust icon size
+              icon: Icon(Iconsax.setting, size: 24.0),
               title: Text(
                 'Settings',
                 style: GoogleFonts.montserrat(
-                  fontSize: 12.0, // Decreased text size
-                  fontWeight: _selectedIndex == 3 ? FontWeight.bold : FontWeight.normal, // Bold if selected
+                  fontSize: 12.0,
+                  fontWeight: _selectedIndex == 3 ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               selectedColor: Colors.green,
@@ -317,6 +326,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   SizedBox(height: 16.0),
+                  TextField(
+                    controller: _createdByController,
+                    decoration: InputDecoration(
+                      labelText: 'Created By',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _locationMapController,
+                    decoration: InputDecoration(
+                      labelText: 'Location Map URL',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
                   Row(
                     children: [
                       Expanded(
@@ -328,6 +361,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       IconButton(
                         icon: Icon(Icons.date_range),
                         onPressed: () => _selectDate(context),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Time: ${_selectedTime.format(context)}',
+                          style: GoogleFonts.montserrat(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.access_time),
+                        onPressed: () => _selectTime(context),
                       ),
                     ],
                   ),
@@ -376,32 +424,57 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
+  void _selectTime(BuildContext context) async {
+    TimeOfDay initialTime = TimeOfDay.now();
+    TimeOfDay newTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    ) ?? initialTime;
+
+    setState(() {
+      _selectedTime = newTime;
+    });
+  }
 
   void _addEvent() async {
-    // Replace with your Firestore collection path and add event logic
     CollectionReference events = FirebaseFirestore.instance.collection('events');
     await events.add({
       'title': _titleController.text,
       'description': _descriptionController.text,
       'location': _locationController.text,
-      'date': _selectedDate,
+      'createdBy': _createdByController.text,
+      'locationMap': _locationMapController.text,
+      'username': _usernameController.text,
+      'date': Timestamp.fromDate(
+        DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
+      ),
+      'rsvpCount': 0,
     });
 
-    // Clear text fields after saving
     _titleController.clear();
     _descriptionController.clear();
     _locationController.clear();
+    _createdByController.clear();
+    _locationMapController.clear();
+    _usernameController.clear();
     setState(() {
       _selectedDate = DateTime.now();
+      _selectedTime = TimeOfDay.now();
     });
   }
 
   void _launchURL(String url) async {
-    // Add your logic to launch the URL
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   void _showProfileOptions(BuildContext context) {
@@ -421,7 +494,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: Text('View Profile', style: GoogleFonts.montserrat()),
                 onTap: () {
                   Navigator.pop(context);
-                  // Navigate to Profile Screen
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => ProfileScreen()),
