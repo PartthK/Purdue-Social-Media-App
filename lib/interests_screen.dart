@@ -13,6 +13,9 @@ class InterestsScreen extends StatelessWidget {
   ];
 
   final Set<String> _selectedInterests = {};
+  final String name;
+
+  InterestsScreen({required this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +76,11 @@ class InterestsScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                final email = authProvider.user?.email;
+                final user = authProvider.user;
 
-                if (email != null) {
+                if (user != null && user.email != null) {
                   // Save interests to Firestore
-                  await _saveInterests(email);
+                  await _saveInterests(user.email!, name);
 
                   // Redirect to home screen after saving interests
                   Navigator.pushReplacement(
@@ -86,7 +89,7 @@ class InterestsScreen extends StatelessWidget {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('No user logged in')),
+                    SnackBar(content: Text('No user logged in or email is null')),
                   );
                 }
               },
@@ -112,11 +115,13 @@ class InterestsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _saveInterests(String email) async {
+  Future<void> _saveInterests(String email, String name) async {
     final firestore = FirebaseFirestore.instance;
     await firestore.collection('users').doc(email).set({
+      'name': name,
       'email': email,
       'tags': _selectedInterests.toList(),
+      'rsvpEvents': [],
     });
   }
 }

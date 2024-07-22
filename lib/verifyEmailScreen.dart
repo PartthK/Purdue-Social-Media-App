@@ -6,6 +6,10 @@ import 'auth_provider.dart';
 import 'interests_screen.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
+  final String name;
+
+  VerifyEmailScreen({required this.name});
+
   @override
   _VerifyEmailScreenState createState() => _VerifyEmailScreenState();
 }
@@ -30,7 +34,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
           _timer?.cancel(); // Stop checking after verification
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => InterestsScreen()),
+            MaterialPageRoute(
+              builder: (context) => InterestsScreen(name: widget.name),
+            ),
           );
         }
       }
@@ -75,7 +81,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   if (user.emailVerified) {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => InterestsScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => InterestsScreen(name: widget.name),
+                      ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(

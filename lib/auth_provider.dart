@@ -26,10 +26,12 @@ class AuthProvider with ChangeNotifier {
     try {
       await _auth.createUserWithEmailAndPassword(email: email, password: password);
       await _auth.currentUser?.sendEmailVerification();
+      await _auth.currentUser?.updateDisplayName(name);
       await _firestore.collection('users').doc(email).set({
         'name': name,
         'email': email,
         'tags': [],
+        'rsvpEvents': []
       });
     } catch (e) {
       print(e);

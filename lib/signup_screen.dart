@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'interests_screen.dart'; // Import InterestsScreen
+import 'interests_screen.dart';
 
 class SignupScreen extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
@@ -52,6 +52,7 @@ class SignupScreen extends StatelessWidget {
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () async {
+                final name = _nameController.text;
                 final email = _emailController.text;
                 final password = _passwordController.text;
 
@@ -60,15 +61,15 @@ class SignupScreen extends StatelessWidget {
                     try {
                       final authProvider = Provider.of<AuthProvider>(context, listen: false);
                       await authProvider.signup(
-                        _nameController.text,
+                        name,
                         email,
                         password,
                       );
 
-                      // Navigate to InterestsScreen
+                      // Navigate to InterestsScreen and pass the name
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => InterestsScreen()),
+                        MaterialPageRoute(builder: (context) => InterestsScreen(name: name)),
                       );
 
                     } catch (e) {

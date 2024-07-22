@@ -2,12 +2,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:purdue_social/home_screen.dart';
 import 'package:purdue_social/auth_screen.dart';
-import 'package:purdue_social/interests_screen.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'firebase_options.dart';
+import 'interests_screen.dart';
 import 'theme.dart';
-import 'auth_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,8 +31,18 @@ class MyApp extends StatelessWidget {
             home: _getInitialScreen(authProvider),
             routes: {
               '/home': (context) => HomeScreen(),
-              '/interests': (context) => InterestsScreen(),
               '/auth': (context) => AuthScreen(),
+            },
+            onGenerateRoute: (settings) {
+              if (settings.name == '/interests') {
+                final args = settings.arguments as String;
+                return MaterialPageRoute(
+                  builder: (context) {
+                    return InterestsScreen(name: args);
+                  },
+                );
+              }
+              return null;
             },
           );
         },
