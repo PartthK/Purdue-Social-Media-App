@@ -128,8 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 isDarkMode,
               ),
               _buildDrawerItem(
-                Iconsax.setting,
-                'Settings',
+                Iconsax.profile,
+                'Profile',
                 3,
                 Colors.green,
                 Color(0xFFE8F5E9),
@@ -167,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
           EventScreen(),
           SearchScreen(),
           NotificationsScreen(),
-          SettingsScreen(),
+          ProfileScreen(),
         ],
       ),
       floatingActionButton: _selectedIndex == 0
@@ -229,9 +229,9 @@ class _HomeScreenState extends State<HomeScreen> {
               selectedColor: Colors.pink,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.setting, size: 24.0),
+              icon: Icon(Iconsax.profile, size: 24.0),
               title: Text(
-                'Settings',
+                'Profile',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 3 ? FontWeight.bold : FontWeight.normal,

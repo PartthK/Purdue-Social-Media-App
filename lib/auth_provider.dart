@@ -30,8 +30,10 @@ class AuthProvider with ChangeNotifier {
       await _firestore.collection('users').doc(email).set({
         'name': name,
         'email': email,
+        'profilePictureUrl': "",
         'tags': [],
         'rsvpEvents': []
+
       });
     } catch (e) {
       print(e);
