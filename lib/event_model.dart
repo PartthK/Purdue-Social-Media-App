@@ -10,6 +10,7 @@ class Event {
   final String locationMap;
   final String title;
   final String username;
+  final List<String> eventTags; // New property for event tags
 
   Event({
     required this.documentId,
@@ -21,6 +22,7 @@ class Event {
     required this.locationMap,
     required this.title,
     required this.username,
+    required this.eventTags, // Initialize the new property
   });
 
   factory Event.fromJson(String id, Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class Event {
       locationMap: json['locationMap'] ?? '',
       title: json['title'] ?? '',
       username: json['username'] ?? '',
+      eventTags: List<String>.from(json['eventTags'] ?? []), // Parse the tags from JSON
     );
   }
 
@@ -47,6 +50,7 @@ class Event {
       'locationMap': locationMap,
       'title': title,
       'username': username,
+      'eventTags': eventTags, // Include the tags in the JSON representation
     };
   }
 }
