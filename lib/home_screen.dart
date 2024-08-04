@@ -1,18 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'auth_provider.dart';
 import 'event_screen.dart';
 import 'search_screen.dart';
 import 'notifications_screen.dart';
-import 'settings_screen.dart';
-import 'auth_screen.dart';
 import 'profile_screen.dart';
+import 'auth_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -36,7 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final isDarkMode = themeData.brightness == Brightness.dark;
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final User? user = FirebaseAuth.instance.currentUser;
+    final userEmail = user?.email ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -75,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Iconsax.user,
               color: isDarkMode ? Colors.white : Colors.black,
             ),
-            onPressed: () => _showProfileOptions(context),
+            onPressed: () => _showProfileOptions(context, userEmail),
           ),
         ],
       ),
@@ -166,8 +165,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           EventScreen(),
           SearchScreen(),
-          NotificationsScreen(),
-          ProfileScreen(),
+          if (userEmail.isNotEmpty) NotificationsScreen(userId: userEmail), // Pass the actual userId
+          if (userEmail.isNotEmpty) ProfileScreen(userId: userEmail), // Pass the actual userId
         ],
       ),
       floatingActionButton: _selectedIndex == 0
@@ -417,7 +416,8 @@ class _HomeScreenState extends State<HomeScreen> {
       initialDate: initialDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-    ) ?? initialDate;
+    ) ??
+        initialDate;
 
     setState(() {
       _selectedDate = newDate;
@@ -429,7 +429,8 @@ class _HomeScreenState extends State<HomeScreen> {
     TimeOfDay newTime = await showTimePicker(
       context: context,
       initialTime: initialTime,
-    ) ?? initialTime;
+    ) ??
+        initialTime;
 
     setState(() {
       _selectedTime = newTime;
@@ -477,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showProfileOptions(BuildContext context) {
+  void _showProfileOptions(BuildContext context, String userEmail) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -496,7 +497,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ProfileScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => ProfileScreen(userId: userEmail)), // Replace with actual userId
                   );
                 },
               ),
@@ -505,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: Text('Logout', style: GoogleFonts.montserrat(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(context);
-                  await Provider.of<AuthProvider>(context, listen: false).logout();
+                  await FirebaseAuth.instance.signOut();
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => AuthScreen()),
