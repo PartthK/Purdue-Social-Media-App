@@ -21,7 +21,7 @@ class AuthProvider with ChangeNotifier {
       print(e);
     }
   }
-
+  //Chota change
   Future<void> signup(String name, String email, String password) async {
     try {
       await _auth.createUserWithEmailAndPassword(email: email, password: password);
