@@ -1,31 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: "your_api_key",
-      authDomain: "your_auth_domain",
-      projectId: "your_project_id",
-      storageBucket: "your_storage_bucket",
-      messagingSenderId: "your_messaging_sender_id",
-      appId: "your_app_id",
-    ),
-  );
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: SearchScreen(),
-    );
-  }
-}
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -47,11 +22,22 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void fetchUsers() async {
-    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('users').get();
-    setState(() {
-      users = snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-      filteredUsers = users;
-    });
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('users').get();
+      setState(() {
+        users = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {
+            'name': data['name'] ?? 'Unknown',
+            'email': data['email'] ?? 'Unknown',
+          };
+        }).toList();
+        filteredUsers = users;
+      });
+    } catch (e) {
+      print('Error fetching users: $e');
+      // Handle error accordingly
+    }
   }
 
   void filterSearchResults(String query) {
