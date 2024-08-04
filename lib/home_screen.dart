@@ -1,18 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'auth_provider.dart';
 import 'event_screen.dart';
 import 'search_screen.dart';
 import 'notifications_screen.dart';
-import 'settings_screen.dart';
-import 'auth_screen.dart';
 import 'profile_screen.dart';
+import 'auth_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -46,7 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     final isDarkMode = themeData.brightness == Brightness.dark;
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final User? user = FirebaseAuth.instance.currentUser;
+    final userEmail = user?.email ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -85,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Iconsax.user,
               color: isDarkMode ? Colors.white : Colors.black,
             ),
-            onPressed: () => _showProfileOptions(context),
+            onPressed: () => _showProfileOptions(context, userEmail),
           ),
         ],
       ),
@@ -176,8 +175,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           EventScreen(),
           SearchScreen(),
-          NotificationsScreen(),
-          ProfileScreen(),
+          if (userEmail.isNotEmpty) NotificationsScreen(userId: userEmail), // Pass the actual userId
+          if (userEmail.isNotEmpty) ProfileScreen(userId: userEmail), // Pass the actual userId
         ],
       ),
       floatingActionButton: _selectedIndex == 0
@@ -328,8 +327,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+  void _selectDate(BuildContext context) async {
+    DateTime initialDate = DateTime.now();
+    DateTime newDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    ) ??
+        initialDate;
+
+    setState(() {
+      _selectedDate = newDate;
+    });
+  }
+
+
     showDialog(
       context: context,
+
       builder: (context) {
         return AlertDialog(
           title: Text('Logout'),
@@ -353,6 +369,48 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+
+      initialTime: initialTime,
+    ) ??
+        initialTime;
+
+    setState(() {
+      _selectedTime = newTime;
+    });
+  }
+
+  void _addEvent() async {
+    CollectionReference events = FirebaseFirestore.instance.collection('events');
+    await events.add({
+      'title': _titleController.text,
+      'description': _descriptionController.text,
+      'location': _locationController.text,
+      'createdBy': _createdByController.text,
+      'locationMap': _locationMapController.text,
+      'username': _usernameController.text,
+      'date': Timestamp.fromDate(
+        DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
+      ),
+      'rsvpCount': 0,
+    });
+
+    _titleController.clear();
+    _descriptionController.clear();
+    _locationController.clear();
+    _createdByController.clear();
+    _locationMapController.clear();
+    _usernameController.clear();
+    setState(() {
+      _selectedDate = DateTime.now();
+      _selectedTime = TimeOfDay.now();
+    });
+
   }
 
   void _launchURL(String url) async {
@@ -362,6 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
       throw 'Could not launch $url';
     }
   }
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -526,6 +585,43 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+
+  void _showProfileOptions(BuildContext context, String userEmail) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Iconsax.user, color: Theme.of(context).primaryColor),
+                title: Text('View Profile', style: GoogleFonts.montserrat()),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ProfileScreen(userId: userEmail)), // Replace with actual userId
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Iconsax.logout, color: Colors.red),
+                title: Text('Logout', style: GoogleFonts.montserrat(color: Colors.red)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => AuthScreen()),
+                  );
+                },
+
               ),
             );
           },
