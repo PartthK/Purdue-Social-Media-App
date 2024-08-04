@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'event_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Assuming FirebaseAuth is used for authentication
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -18,14 +18,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   bool _hasRSVPed = false;
   String? _userId;
   late int _currentRSVPCount;
-  List<String> _eventTags = [];
 
   @override
   void initState() {
     super.initState();
     _currentRSVPCount = widget.event.rsvpCount;
     _fetchUserIdAndCheckRSVP();
-    _fetchEventTags();
   }
 
   Future<void> _fetchUserIdAndCheckRSVP() async {
@@ -45,20 +43,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           _hasRSVPed = rsvpEvents.contains(widget.event.documentId);
         });
       }
-    }
-  }
-
-  Future<void> _fetchEventTags() async {
-    DocumentSnapshot eventSnapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .doc(widget.event.documentId)
-        .get();
-
-    if (eventSnapshot.exists) {
-      List<dynamic> tags = eventSnapshot['tags'] ?? [];
-      setState(() {
-        _eventTags = List<String>.from(tags);
-      });
     }
   }
 
@@ -111,21 +95,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   }
                 },
                 child: Text(
-                  '',
+                  'Open Location in Google Maps',
                   style: TextStyle(color: Colors.blue),
                 ),
               ),
-            SizedBox(height: 20),
-            Text('Event Tags:'),
-            Wrap(
-              spacing: 8.0,
-              children: _eventTags.map((tag) {
-                return Chip(
-                  label: Text(tag),
-                  backgroundColor: Colors.lightBlueAccent,
-                );
-              }).toList(),
-            ),
             SizedBox(height: 20),
             if (!_hasRSVPed)
               ElevatedButton(
