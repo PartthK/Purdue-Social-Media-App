@@ -27,18 +27,9 @@ class EventScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Title: ${event.title}'),
-                    Text('Date: ${event.date}'),
+                    Text('Date: ${event.date.toString()}'),
                     Text('Created By: ${event.createdBy}'),
                     Text('Description: ${event.description}'),
-                    Wrap(
-                      spacing: 8.0,
-                      children: event.eventTags.map((tag) {
-                        return Chip(
-                          label: Text(tag),
-                          backgroundColor: Colors.lightBlueAccent,
-                        );
-                      }).toList(),
-                    ),
                   ],
                 ),
                 onTap: () {

@@ -30,16 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
 
-  // Predefined event tags
-  final List<String> _predefinedTags = [
-    'Music', 'Tech', 'Art', 'Sports', 'Education', 'Health', 'Networking',
-    'Gaming', 'Food', 'Travel', 'Fashion', 'Business', 'Charity', 'Science',
-    'History', 'Culture', 'Photography', 'Literature', 'Comedy', 'Theater'
-  ];
-
-  // Selected tags by user
-  final Set<String> _selectedTags = Set();
-
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
@@ -263,10 +253,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       title: Container(
         decoration: BoxDecoration(
-          color: _selectedIndex == index ? bubbleColor : null,
-          borderRadius: BorderRadius.circular(10.0),
+          color: _selectedIndex == index ? bubbleColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         child: Text(
           title,
           style: GoogleFonts.montserrat(
@@ -276,10 +266,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       onTap: () {
+        Navigator.pop(context);
         setState(() {
           _selectedIndex = index;
         });
-        Navigator.pop(context);
       },
     );
   }
@@ -290,42 +280,134 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _showProfileOptions(BuildContext context) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
-
+  void _showAddEventModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return Wrap(
-          children: [
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('View Profile'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
-                );
-              },
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Add Event',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Title',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _locationController,
+                    decoration: InputDecoration(
+                      labelText: 'Location',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _createdByController,
+                    decoration: InputDecoration(
+                      labelText: 'Created By',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _locationMapController,
+                    decoration: InputDecoration(
+                      labelText: 'Location Map URL',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      labelStyle: GoogleFonts.montserrat(),
+                    ),
+                  ),
+                  SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Date: ${_selectedDate.toLocal().toString().split(' ')[0]}',
+                          style: GoogleFonts.montserrat(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.date_range),
+                        onPressed: () => _selectDate(context),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Time: ${_selectedTime.format(context)}',
+                          style: GoogleFonts.montserrat(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.access_time),
+                        onPressed: () => _selectTime(context),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      _addEvent(); // Call _addEvent to save the event and update Firestore
+                      Navigator.pop(context); // Close the modal
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.black, // Text color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0), // Border radius
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0), // Button size
+                    ),
+                    child: Text(
+                      'Save Event',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16.0, // Font size
+                        fontWeight: FontWeight.bold, // Bold text
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading: Icon(Icons.exit_to_app),
-              title: Text('Log Out'),
-              onTap: () {
-                Navigator.pop(context);
-                _showLogoutConfirmationDialog(context);
-              },
-            ),
-          ],
+          ),
         );
       },
     );
   }
-
-  Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
   void _selectDate(BuildContext context) async {
     DateTime initialDate = DateTime.now();
@@ -342,34 +424,10 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
-    showDialog(
+  void _selectTime(BuildContext context) async {
+    TimeOfDay initialTime = TimeOfDay.now();
+    TimeOfDay newTime = await showTimePicker(
       context: context,
-
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Logout'),
-          content: Text('Are you sure you want to log out?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                authProvider.logout();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => AuthScreen()),
-                      (route) => false,
-                );
-              },
-              child: Text('Log Out'),
-            ),
-          ],
-        );
-      },
-    );
-
       initialTime: initialTime,
     ) ??
         initialTime;
@@ -410,7 +468,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedDate = DateTime.now();
       _selectedTime = TimeOfDay.now();
     });
-
   }
 
   void _launchURL(String url) async {
@@ -420,171 +477,6 @@ class _HomeScreenState extends State<HomeScreen> {
       throw 'Could not launch $url';
     }
   }
-
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2021),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (picked != null && picked != _selectedTime) {
-      setState(() {
-        _selectedTime = picked;
-      });
-    }
-  }
-
-  void _showAddEventModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Add Event',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 20.0),
-                      TextField(
-                        controller: _titleController,
-                        decoration: InputDecoration(
-                          labelText: 'Event Title',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      SizedBox(height: 20.0),
-                      TextField(
-                        controller: _descriptionController,
-                        decoration: InputDecoration(
-                          labelText: 'Event Description',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
-                      SizedBox(height: 20.0),
-                      TextField(
-                        controller: _locationController,
-                        decoration: InputDecoration(
-                          labelText: 'Event Location',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      SizedBox(height: 20.0),
-                      TextField(
-                        controller: _createdByController,
-                        decoration: InputDecoration(
-                          labelText: 'Created By',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      SizedBox(height: 20.0),
-                      TextField(
-                        controller: _locationMapController,
-                        decoration: InputDecoration(
-                          labelText: 'Location Map URL',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      SizedBox(height: 20.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Date: ${_selectedDate.toLocal()}'.split(' ')[0]),
-                          TextButton(
-                            onPressed: () => _selectDate(context),
-                            child: Text('Select Date'),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Time: ${_selectedTime.format(context)}'),
-                          TextButton(
-                            onPressed: () => _selectTime(context),
-                            child: Text('Select Time'),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20.0),
-                      Wrap(
-                        spacing: 8.0,
-                        children: _predefinedTags.map((tag) {
-                          return ChoiceChip(
-                            label: Text(tag),
-                            selected: _selectedTags.contains(tag),
-                            onSelected: (bool selected) {
-                              setState(() {
-                                if (selected) {
-                                  _selectedTags.add(tag);
-                                } else {
-                                  _selectedTags.remove(tag);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                      SizedBox(height: 20.0),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (_titleController.text.isNotEmpty &&
-                              _descriptionController.text.isNotEmpty &&
-                              _locationController.text.isNotEmpty &&
-                              _selectedTags.length >= 3) {
-                            FirebaseFirestore.instance.collection('events').add({
-                              'title': _titleController.text,
-                              'description': _descriptionController.text,
-                              'location': _locationController.text,
-                              'createdBy': _createdByController.text,
-                              'locationMap': _locationMapController.text,
-                              'date': _selectedDate.toIso8601String(),
-                              'time': _selectedTime.format(context),
-                              'tags': _selectedTags.toList(),
-                              'username': _usernameController.text,
-                            });
-                            Navigator.of(context).pop();
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Please fill all fields and select at least 3 tags.')),
-                            );
-                          }
-                        },
-                        child: Text('Add Event'),
-                      ),
-                    ],
-                  ),
-                ),
 
   void _showProfileOptions(BuildContext context, String userEmail) {
     showModalBottomSheet(
@@ -621,10 +513,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(builder: (context) => AuthScreen()),
                   );
                 },
-
               ),
-            );
-          },
+            ],
+          ),
         );
       },
     );
