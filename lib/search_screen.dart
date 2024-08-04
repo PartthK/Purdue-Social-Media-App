@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_screen.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -112,6 +113,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     );
                   },
+
                 );
               },
             ),
