@@ -1,16 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'auth_provider.dart';
+import 'auth_provider.dart' as custom_auth;
 import 'signup_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String _validationMessage = '';
+  bool _isDarkMode = true;
+
+  void _validateAndLogin() async {
+    String email = _emailController.text;
+    String password = _passwordController.text;
+
+    if (!email.endsWith('@purdue.edu')) {
+      setState(() {
+        _validationMessage = 'Only @purdue.edu emails are allowed';
+      });
+    } else {
+      setState(() {
+        _validationMessage = '';
+      });
+      try {
+        await Provider.of<custom_auth.AuthProvider>(context, listen: false).login(email, password);
+      } on FirebaseAuthException catch (e) {
+        setState(() {
+          if (e.code == 'invalid-credential') {
+            _validationMessage = 'The supplied auth credential is incorrect, malformed or has expired.';
+          } else if (e.code == 'user-not-found') {
+            _validationMessage = 'No user found for that email.';
+          } else if (e.code == 'wrong-password') {
+            _validationMessage = 'Wrong password provided for that user.';
+          } else {
+            _validationMessage = 'An unexpected error occurred. Please try again.';
+          }
+        });
+      }
+    }
+  }
+
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _isDarkMode ? Color(0xFF0D1114) : Colors.white,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FloatingActionButton(
+          onPressed: _toggleTheme,
+          child: Icon(_isDarkMode ? Icons.dark_mode : Icons.light_mode),
+          mini: true,
+          backgroundColor: _isDarkMode ? Colors.white : Colors.black,
+          foregroundColor: _isDarkMode ? Colors.black : Colors.white,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
@@ -21,36 +77,50 @@ class LoginScreen extends StatelessWidget {
               style: GoogleFonts.montserrat(
                 fontSize: 32.0,
                 fontWeight: FontWeight.bold,
+                color: _isDarkMode ? Colors.white : Colors.black,
               ),
             ),
             SizedBox(height: 16.0),
             TextField(
               controller: _emailController,
+              style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
               decoration: InputDecoration(
-                labelText: 'Email',
-                labelStyle: GoogleFonts.montserrat(),
+                hintText: 'Email',
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey),
+                filled: true,
+                fillColor: _isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(Icons.person, color: Colors.grey),
+                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
             ),
             SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
               obscureText: true,
+              style: TextStyle(color: _isDarkMode ? Colors.white : Colors.black),
               decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: GoogleFonts.montserrat(),
+                hintText: 'Password',
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey),
+                filled: true,
+                fillColor: _isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(Icons.lock, color: Colors.grey),
+                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               ),
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: () {
-                Provider.of<AuthProvider>(context, listen: false).login(
-                  _emailController.text,
-                  _passwordController.text,
-                );
-              },
+              onPressed: _validateAndLogin,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: Colors.black,
+                backgroundColor: _isDarkMode ? Colors.white : Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -61,6 +131,7 @@ class LoginScreen extends StatelessWidget {
                 style: GoogleFonts.montserrat(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
+                  color: _isDarkMode ? Colors.black : Colors.white,
                 ),
               ),
             ),
@@ -73,9 +144,19 @@ class LoginScreen extends StatelessWidget {
               },
               child: Text(
                 'Don\'t have an account? Sign up',
-                style: GoogleFonts.montserrat(),
+                style: GoogleFonts.montserrat(
+                  color: _isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
             ),
+            if (_validationMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Text(
+                  _validationMessage,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
           ],
         ),
       ),

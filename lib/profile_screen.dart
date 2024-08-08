@@ -35,17 +35,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final email = authProvider.user?.email ?? '';
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Profile',
-          style: GoogleFonts.montserrat(
-            color: isDarkMode ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: isDarkMode ? Colors.black : Color(0xfff3f1f7),
-        elevation: 0,
-      ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('users').doc(email).get(),
         builder: (context, snapshot) {

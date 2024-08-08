@@ -7,12 +7,16 @@ class AuthProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? _user;
 
+  ThemeMode _themeMode = ThemeMode.dark; // Default to dark mode
+
   AuthProvider() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
   }
 
   User? get user => _user;
   bool get isAuthenticated => _user != null;
+
+  ThemeMode get themeMode => _themeMode;
 
   Future<void> login(String email, String password) async {
     try {
@@ -46,6 +50,11 @@ class AuthProvider with ChangeNotifier {
 
   void _onAuthStateChanged(User? user) {
     _user = user;
+    notifyListeners();
+  }
+
+  void toggleThemeMode() {
+    _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     notifyListeners();
   }
 }
