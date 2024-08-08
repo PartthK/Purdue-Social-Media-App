@@ -68,16 +68,16 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(48.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Login',
-              style: GoogleFonts.montserrat(
-                fontSize: 32.0,
+              'BoilerVibe',
+              style: GoogleFonts.outfit(
+                fontSize: 42.0,
                 fontWeight: FontWeight.bold,
-                color: _isDarkMode ? Colors.white : Colors.black,
+                color: Colors.orange,
               ),
             ),
             SizedBox(height: 16.0),
