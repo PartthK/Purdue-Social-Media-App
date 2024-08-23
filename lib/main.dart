@@ -32,6 +32,7 @@ class MyApp extends StatelessWidget {
             routes: {
               '/home': (context) => HomeScreen(),
               '/auth': (context) => AuthScreen(),
+
             },
             onGenerateRoute: (settings) {
               if (settings.name == '/interests') {
