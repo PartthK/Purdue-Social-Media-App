@@ -1,13 +1,17 @@
-import 'dart:io'; // Add this import
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class ProfileScreen extends StatefulWidget {
+  final String userId;
+
+  ProfileScreen({required this.userId});
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -19,24 +23,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final authProvider = Provider.of<AuthProvider>(context);
-
-    if (authProvider.user == null) {
-      return Scaffold(
-        body: Center(
-          child: Text(
-            'No user logged in',
-            style: GoogleFonts.montserrat(fontSize: 24.0),
-          ),
-        ),
-      );
-    }
-
-    final email = authProvider.user?.email ?? '';
+    final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(email).get(),
+        future: FirebaseFirestore.instance.collection('users').doc(widget.userId).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -84,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 SizedBox(height: 16.0),
                 Text(
-                  'Email: $email',
+                  'Email: ${widget.userId}',
                   style: GoogleFonts.montserrat(fontSize: 24.0, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 16.0),
@@ -97,6 +88,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   tag,
                   style: GoogleFonts.montserrat(fontSize: 18.0),
                 )),
+                SizedBox(height: 16.0),
+                if (currentUser?.email != widget.userId)
+                  ElevatedButton(
+                    onPressed: () {
+                      sendFriendRequest(widget.userId);
+                    },
+                    child: Text('Send Friend Request'),
+                  ),
               ],
             ),
           );
@@ -115,14 +114,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
       // Update Firestore with the new profile image URL
-      final email = Provider.of<AuthProvider>(context, listen: false).user?.email ?? '';
-      await FirebaseFirestore.instance.collection('users').doc(email).update({
+      await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
         'profileImageUrl': downloadUrl,
       });
 
       setState(() {
         _profileImageUrl = downloadUrl;
       });
+    }
+  }
+
+  Future<void> sendFriendRequest(String friendId) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      await FirebaseFirestore.instance.collection('users').doc(friendId).collection('friendRequests').add({
+        'from': currentUser.email,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Send notification
+      FirebaseMessaging.instance.sendMessage(
+        to: friendId,
+        data: {
+          'title': 'Friend Request',
+          'body': '${currentUser.email} sent you a friend request.',
+        },
+      );
     }
   }
 }
