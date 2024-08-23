@@ -68,6 +68,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            icon: Icon(Iconsax.search_normal),
+            onPressed: () => _showProfileOptions(context),
+          ),
+          IconButton(
             icon: Icon(Iconsax.user),
             onPressed: () => _showProfileOptions(context),
           ),
@@ -194,16 +198,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ProfileScreen(),
         ],
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
+
+      floatingActionButton: _selectedIndex == 0 ? FloatingActionButton(
         onPressed: () => _showAddEventModal(context),
         child: Icon(
           Icons.add,
           color: Theme.of(context).hintColor,
         ),
         backgroundColor: themeData.primaryColor,
-      )
-          : null,
+      ) : null,
 
       bottomNavigationBar: Container(
         height: 80.0,
