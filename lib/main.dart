@@ -18,7 +18,7 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-//Gaur useless i know pouhw
+//Gaur useless
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -43,7 +43,6 @@ class MyApp extends StatelessWidget {
             routes: {
               '/home': (context) => HomeScreen(),
               '/auth': (context) => AuthScreen(),
-
             },
             onGenerateRoute: (settings) {
               if (settings.name == '/interests') {
