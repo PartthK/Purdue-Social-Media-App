@@ -18,7 +18,7 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-//Gaur useless gq3g
+//Gaur useless i know
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
