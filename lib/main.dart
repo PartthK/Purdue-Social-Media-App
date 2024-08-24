@@ -1,11 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:purdue_social/home_screen.dart';
-import 'package:purdue_social/auth_screen.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'firebase_options.dart';
+import 'home_screen.dart';
+import 'auth_screen.dart';
 import 'interests_screen.dart';
 import 'theme.dart';
 
@@ -17,8 +17,6 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const MyApp());
 }
-
-//Gaur useless i know pouhw
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();

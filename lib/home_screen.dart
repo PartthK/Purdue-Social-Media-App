@@ -39,23 +39,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _selectedIndex == 0
-              ? 'Events'
-              : _selectedIndex == 1
-              ? 'Search'
-              : _selectedIndex == 2
-              ? 'Notifications'
-              : 'Settings',
-          style: GoogleFonts.montserrat(
-            color: isDarkMode ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            _selectedIndex == 0
+                ? 'Events'
+                : _selectedIndex == 1
+                ? 'Search'
+                : _selectedIndex == 2
+                ? 'Notifications'
+                : 'Settings',
+            style: GoogleFonts.montserrat(
+              color: Colors.orange,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         backgroundColor: isDarkMode ? Colors.black : Color(0xfff3f1f7),
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: isDarkMode ? Colors.black : Color(0xfff3f1f7),
+          statusBarColor: Theme.of(context).scaffoldBackgroundColor,
           statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
         ),
         leading: Builder(
@@ -70,13 +74,17 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              Iconsax.user,
-              color: isDarkMode ? Colors.white : Colors.black,
-            ),
+            icon: Icon(Iconsax.user),
             onPressed: () => _showProfileOptions(context, userEmail),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Colors.grey,
+            height: 0.2,
+          ),
+        ),
       ),
       drawer: Drawer(
         child: Container(
@@ -94,9 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   alignment: Alignment.bottomLeft,
                   child: Text(
                     'BoilerVibe',
-                    style: GoogleFonts.montserrat(
-                      color: isDarkMode ? Colors.white : Colors.black,
-                      fontSize: 20,
+                    style: GoogleFonts.outfit(
+                      color: Colors.orange,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -134,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Color(0xFFE8F5E9),
                 isDarkMode,
               ),
+              Divider(),
               ListTile(
                 leading: Icon(Iconsax.shield_tick, color: isDarkMode ? Colors.white : Colors.black),
                 title: Text(
@@ -143,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onTap: () => _launchURL('https://sites.google.com/view/boilervibe-app/privacy-policy'),
+                onTap: () => _launchURL('https://boilervibe.framer.website/'),
               ),
               ListTile(
                 leading: Icon(Iconsax.document, color: isDarkMode ? Colors.white : Colors.black),
@@ -154,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                onTap: () => _launchURL('https://sites.google.com/view/boilervibe-app/terms-of-use'),
+                onTap: () => _launchURL('https://boilervibe.framer.website/'),
               ),
             ],
           ),
@@ -182,10 +191,16 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: Container(
         height: 80.0,
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.black87 : Color(0xe8f3f1f7),
+          color: Theme.of(context).appBarTheme.backgroundColor,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(30.0),
             topRight: Radius.circular(30.0),
+          ),
+          border: Border(
+            top: BorderSide(
+              color: Colors.grey, // Thin grey border
+              width: 0.2, // Adjust the width as needed
+            ),
           ),
         ),
         child: SalomonBottomBar(
@@ -195,48 +210,52 @@ class _HomeScreenState extends State<HomeScreen> {
           unselectedItemColor: isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.7),
           items: [
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.home, size: 24.0),
+              icon: Icon(Iconsax.home, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Home',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: isDarkMode ? Colors.white : Colors.black,
+              selectedColor: Colors.grey,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.search_normal, size: 24.0),
+              icon: Icon(Iconsax.search_normal, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Search',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: Colors.deepPurple,
+              selectedColor: Colors.grey,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.notification, size: 24.0),
+              icon: Icon(Iconsax.notification, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Notifications',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 2 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: Colors.pink,
+              selectedColor: Colors.grey,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.profile, size: 24.0),
+              icon: Icon(Iconsax.user, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Profile',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 3 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: Colors.green,
+              selectedColor: Colors.grey,
             ),
           ],
           itemPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
@@ -260,7 +279,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(
           title,
           style: GoogleFonts.montserrat(
-            color: _selectedIndex == index ? selectedColor : (isDarkMode ? Colors.white : Colors.black),
+            color: _selectedIndex == index
+                ? selectedColor
+                : Theme.of(context).textTheme.bodyMedium?.color,
             fontWeight: FontWeight.bold,
           ),
         ),
