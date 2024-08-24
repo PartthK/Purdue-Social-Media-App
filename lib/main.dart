@@ -18,6 +18,8 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+//Gaur useless i know pouhw
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("Handling a background message: ${message.messageId}");
@@ -34,7 +36,9 @@ class MyApp extends StatelessWidget {
         builder: (context, authProvider, _) {
           return MaterialApp(
             title: 'BoilerVibe',
-            theme: BoilerVibeTheme.theme,
+            theme: BoilerVibeTheme.lightTheme, // Light theme
+            darkTheme: BoilerVibeTheme.darkTheme, // Dark theme
+            themeMode: authProvider.themeMode, // Use theme mode from AuthProvider
             home: _getInitialScreen(authProvider),
             routes: {
               '/home': (context) => HomeScreen(),
