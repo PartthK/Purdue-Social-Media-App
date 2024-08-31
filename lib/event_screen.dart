@@ -4,8 +4,49 @@ import 'package:intl/intl.dart';
 import 'event_detail_screen.dart';
 import 'event_model.dart';
 
-class EventScreen extends StatelessWidget {
+class EventScreen extends StatefulWidget {
   const EventScreen({Key? key}) : super(key: key);
+
+  @override
+  _EventScreenState createState() => _EventScreenState();
+}
+
+class _EventScreenState extends State<EventScreen> {
+  List<Event> events = [];
+  List<Event> filteredEvents = [];
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    searchController.addListener(() {
+      filterEvents();
+    });
+  }
+
+  void filterEvents() {
+    String query = searchController.text.toLowerCase();
+    if (query.isNotEmpty) {
+      setState(() {
+        filteredEvents = events.where((event) {
+          return event.title.toLowerCase().contains(query) ||
+              event.description.toLowerCase().contains(query) ||
+              event.location.toLowerCase().contains(query) ||
+              event.createdBy.toLowerCase().contains(query); // Added createdBy for username search
+        }).toList();
+      });
+    } else {
+      setState(() {
+        filteredEvents = events;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,40 +54,62 @@ class EventScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Upcoming Events'),
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('events')
-            .where('date', isGreaterThanOrEqualTo: Timestamp.now())
-            .orderBy('date', descending: false)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: "Search Events",
+                hintText: "Search by title, description, location, or username",
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('events')
+                  .where('date', isGreaterThanOrEqualTo: Timestamp.now())
+                  .orderBy('date', descending: false)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No events found'));
-          }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('No events found'));
+                }
 
-          List<Event> events = snapshot.data!.docs.map((doc) {
-            return Event.fromJson(doc.id, doc.data() as Map<String, dynamic>);
-          }).toList();
+                events = snapshot.data!.docs.map((doc) {
+                  return Event.fromJson(doc.id, doc.data() as Map<String, dynamic>);
+                }).toList();
 
-          // Sort events by date as a fallback in case Firestore ordering fails
-          events.sort((a, b) => a.date.compareTo(b.date));
+                // Initially, show all events
+                if (searchController.text.isEmpty) {
+                  filteredEvents = events;
+                }
 
-          return ListView.builder(
-            itemCount: events.length,
-            itemBuilder: (context, index) {
-              Event event = events[index];
-              return EventCard(event: event);
-            },
-          );
-        },
+                return ListView.builder(
+                  itemCount: filteredEvents.length,
+                  itemBuilder: (context, index) {
+                    Event event = filteredEvents[index];
+                    return EventCard(event: event);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
