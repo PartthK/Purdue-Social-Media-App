@@ -36,8 +36,8 @@ class AuthProvider with ChangeNotifier {
         'email': email,
         'profilePictureUrl': "",
         'tags': [],
-        'rsvpEvents': []
-
+        'rsvpEvents': [],
+        'friends': [],
       });
     } catch (e) {
       print(e);

@@ -98,6 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           final name = data['name'] ?? 'N/A';
           final tags = List<String>.from(data['tags'] ?? []);
+          final friends = List<String>.from(data['friends'] ?? []);
           _profileImageUrl = data['profileImageUrl'] ?? null;
 
           return Padding(
@@ -130,6 +131,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(height: 8.0),
                 ...tags.map((tag) => Text(
                   tag,
+                  style: GoogleFonts.montserrat(fontSize: 18.0),
+                )),
+                Text(
+                  'Friends:',
+                  style: GoogleFonts.montserrat(fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8.0),
+                ...friends.map((friend) => Text(
+                  friend,
                   style: GoogleFonts.montserrat(fontSize: 18.0),
                 )),
                 SizedBox(height: 16.0),

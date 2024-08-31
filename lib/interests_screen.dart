@@ -121,6 +121,7 @@ class InterestsScreen extends StatelessWidget {
       'name': name,
       'email': email,
       'tags': _selectedInterests.toList(),
+      'friends': [],
       'rsvpEvents': [],
     });
   }
