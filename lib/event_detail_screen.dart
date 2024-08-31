@@ -101,6 +101,19 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 ),
               ),
             SizedBox(height: 20),
+            Text('Tags:', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: widget.event.tags.map((tag) {
+                return Chip(
+                  label: Text(tag),
+                  backgroundColor: Colors.blue.shade100,
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 20),
             if (!_hasRSVPed)
               ElevatedButton(
                 onPressed: () => _incrementRSVPCount(widget.event.documentId),
@@ -172,3 +185,5 @@ void showEventDetails(BuildContext context, Event event) {
     builder: (context) => EventDetailScreen(event: event),
   );
 }
+
+

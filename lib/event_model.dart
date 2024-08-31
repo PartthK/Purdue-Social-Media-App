@@ -10,6 +10,7 @@ class Event {
   final String locationMap;
   final String title;
   final String username;
+  final List<String> tags; // Add this field
 
   Event({
     required this.documentId,
@@ -21,6 +22,7 @@ class Event {
     required this.locationMap,
     required this.title,
     required this.username,
+    required this.tags, // Add this to the constructor
   });
 
   factory Event.fromJson(String id, Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class Event {
       locationMap: json['locationMap'] ?? '',
       title: json['title'] ?? '',
       username: json['username'] ?? '',
+      tags: List<String>.from(json['tags'] ?? []), // Deserialize tags
     );
   }
 
@@ -47,6 +50,7 @@ class Event {
       'locationMap': locationMap,
       'title': title,
       'username': username,
+      'tags': tags, // Serialize tags
     };
   }
 }

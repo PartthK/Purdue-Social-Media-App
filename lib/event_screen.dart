@@ -71,7 +71,7 @@ class _EventScreenState extends State<EventScreen> {
             ),
           ),
           Expanded(
-            child: StreamBuilder(
+            child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('events')
                   .where('date', isGreaterThanOrEqualTo: Timestamp.now())

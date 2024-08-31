@@ -31,6 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _usernameController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
+  List<String> _allTags = ['Music', 'Sports', 'Technology', 'Art', 'Education'];
+  List<String> _selectedTags = [];
+
 
   @override
   Widget build(BuildContext context) {
@@ -421,6 +424,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   SizedBox(height: 16.0),
+                  // Tag Selection
+                  Text(
+                    'Tags:',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8.0),
+                  Wrap(
+                    spacing: 8.0,
+                    children: _allTags.map((tag) {
+                      final isSelected = _selectedTags.contains(tag);
+                      return FilterChip(
+                        label: Text(tag),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedTags.add(tag);
+                            } else {
+                              _selectedTags.remove(tag);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: () {
                       _addEvent(); // Call _addEvent to save the event and update Firestore
@@ -450,6 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+
 
   void _selectDate(BuildContext context) async {
     DateTime initialDate = DateTime.now();
@@ -498,19 +531,24 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       'rsvpCount': 0,
+      'tags': _selectedTags, // Add the selected tags here
     });
 
+    // Clear the controllers and reset the selected date and time
     _titleController.clear();
     _descriptionController.clear();
     _locationController.clear();
     _createdByController.clear();
     _locationMapController.clear();
     _usernameController.clear();
+
     setState(() {
       _selectedDate = DateTime.now();
       _selectedTime = TimeOfDay.now();
+      _selectedTags.clear(); // Clear the selected tags
     });
   }
+
 
   void _launchURL(String url) async {
     if (await canLaunch(url)) {
