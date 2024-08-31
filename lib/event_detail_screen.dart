@@ -1,9 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'event_model.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Assuming FirebaseAuth is used for authentication
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -121,6 +122,20 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.blue),
+          SizedBox(width: 8),
+          Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
   void _incrementRSVPCount(String documentId) async {
     if (_userId != null) {
       FirebaseFirestore.instance.runTransaction((transaction) async {
@@ -147,4 +162,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       });
     }
   }
+}
+
+void showEventDetails(BuildContext context, Event event) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => EventDetailScreen(event: event),
+  );
 }

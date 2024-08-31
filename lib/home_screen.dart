@@ -11,6 +11,8 @@ import 'search_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'auth_screen.dart';
+import 'auth_provider.dart' as custom_auth;
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -39,29 +41,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _selectedIndex == 0
-              ? 'Events'
-              : _selectedIndex == 1
-              ? 'Search'
-              : _selectedIndex == 2
-              ? 'Notifications'
-              : 'Settings',
-          style: GoogleFonts.montserrat(
-            color: isDarkMode ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'BoilerVibe',
+            style: GoogleFonts.outfit(
+              color: Colors.orange,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-        backgroundColor: isDarkMode ? Colors.black : Color(0xfff3f1f7),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: isDarkMode ? Colors.black : Color(0xfff3f1f7),
+          statusBarColor: Theme.of(context).scaffoldBackgroundColor,
           statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
         ),
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(
-              Iconsax.sidebar_right,
+              Iconsax.menu_14,
               size: 30.0,
               color: isDarkMode ? Colors.white : Colors.black,
             ),
@@ -70,94 +70,124 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              Iconsax.user,
-              color: isDarkMode ? Colors.white : Colors.black,
-            ),
+            icon: Icon(Iconsax.search_normal),
+            onPressed: () => _showProfileOptions(context, userEmail),
+          ),
+          IconButton(
+            icon: Icon(Iconsax.user),
             onPressed: () => _showProfileOptions(context, userEmail),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Colors.grey,
+            height: 0.2,
+          ),
+        ),
       ),
       drawer: Drawer(
-        child: Container(
-          color: isDarkMode ? Colors.black : Colors.white,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.black : Colors.white,
-                ),
-                margin: EdgeInsets.only(bottom: 0),
-                padding: EdgeInsets.only(left: 16.0, bottom: 16.0),
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Text(
-                    'BoilerVibe',
-                    style: GoogleFonts.montserrat(
-                      color: isDarkMode ? Colors.white : Colors.black,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+        child: Stack(
+          children: [
+            Container(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).appBarTheme.backgroundColor,
+                    ),
+                    margin: EdgeInsets.only(bottom: 0),
+                    padding: EdgeInsets.only(left: 16.0, bottom: 16.0),
+                    child: Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Text(
+                        'BoilerVibe',
+                        style: GoogleFonts.outfit(
+                          color: Colors.orange,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              _buildDrawerItem(
-                Iconsax.home,
-                'Home',
-                0,
-                Colors.blue,
-                Color(0xFFE0F7FA),
-                isDarkMode,
-              ),
-              _buildDrawerItem(
-                Iconsax.search_normal,
-                'Search',
-                1,
-                Colors.deepPurple,
-                Color(0xFFEFE1FF),
-                isDarkMode,
-              ),
-              _buildDrawerItem(
-                Iconsax.notification,
-                'Notifications',
-                2,
-                Colors.pink,
-                Color(0xFFFFEBEE),
-                isDarkMode,
-              ),
-              _buildDrawerItem(
-                Iconsax.profile,
-                'Profile',
-                3,
-                Colors.green,
-                Color(0xFFE8F5E9),
-                isDarkMode,
-              ),
-              ListTile(
-                leading: Icon(Iconsax.shield_tick, color: isDarkMode ? Colors.white : Colors.black),
-                title: Text(
-                  'Privacy Policy',
-                  style: GoogleFonts.montserrat(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.bold,
+                  _buildDrawerItem(
+                      Iconsax.home,
+                      'Home',
+                      0,
+                      Theme.of(context).primaryColor,
+                      Colors.grey,
+                      Theme.of(context).brightness == Brightness.dark
                   ),
-                ),
-                onTap: () => _launchURL('https://sites.google.com/view/boilervibe-app/privacy-policy'),
-              ),
-              ListTile(
-                leading: Icon(Iconsax.document, color: isDarkMode ? Colors.white : Colors.black),
-                title: Text(
-                  'Terms of Use',
-                  style: GoogleFonts.montserrat(
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.bold,
+                  _buildDrawerItem(
+                      Iconsax.search_normal,
+                      'Search',
+                      1,
+                      Theme.of(context).primaryColor,
+                      Colors.grey,
+                      Theme.of(context).brightness == Brightness.dark
                   ),
-                ),
-                onTap: () => _launchURL('https://sites.google.com/view/boilervibe-app/terms-of-use'),
+                  _buildDrawerItem(
+                      Iconsax.notification,
+                      'Notifications',
+                      2,
+                      Theme.of(context).primaryColor,
+                      Colors.grey,
+                      Theme.of(context).brightness == Brightness.dark
+                  ),
+                  _buildDrawerItem(
+                      Iconsax.user,
+                      'Profile',
+                      3,
+                      Theme.of(context).primaryColor,
+                      Colors.grey,
+                      Theme.of(context).brightness == Brightness.dark
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: Icon(Iconsax.shield_tick, color: Theme.of(context).primaryColor),
+                    title: Text(
+                      'Privacy Policy',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () => _launchURL('https://boilervibe.framer.website/'),
+                  ),
+                  ListTile(
+                    leading: Icon(Iconsax.document, color: Theme.of(context).primaryColor),
+                    title: Text(
+                      'Terms of Use',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () => _launchURL('https://boilervibe.framer.website/'),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Consumer<custom_auth.AuthProvider>(
+                builder: (context, authProvider, _) {
+                  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+                  return FloatingActionButton(
+                    onPressed: () {
+                      print("FloatingActionButton pressed");
+                      authProvider.toggleThemeMode();
+                    },
+                    child: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+                    mini: true,
+                    backgroundColor: isDarkMode ? Colors.white : Colors.black,
+                    foregroundColor: isDarkMode ? Colors.black : Colors.white,
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
       body: IndexedStack(
@@ -182,10 +212,16 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: Container(
         height: 80.0,
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.black87 : Color(0xe8f3f1f7),
+          color: Theme.of(context).appBarTheme.backgroundColor,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(30.0),
             topRight: Radius.circular(30.0),
+          ),
+          border: Border(
+            top: BorderSide(
+              color: Colors.grey, // Thin grey border
+              width: 0.2, // Adjust the width as needed
+            ),
           ),
         ),
         child: SalomonBottomBar(
@@ -195,48 +231,52 @@ class _HomeScreenState extends State<HomeScreen> {
           unselectedItemColor: isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.7),
           items: [
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.home, size: 24.0),
+              icon: Icon(Iconsax.home, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Home',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: isDarkMode ? Colors.white : Colors.black,
+              selectedColor: Colors.grey,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.search_normal, size: 24.0),
+              icon: Icon(Iconsax.search_normal, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Search',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: Colors.deepPurple,
+              selectedColor: Colors.grey,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.notification, size: 24.0),
+              icon: Icon(Iconsax.notification, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Notifications',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 2 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: Colors.pink,
+              selectedColor: Colors.grey,
             ),
             SalomonBottomBarItem(
-              icon: Icon(Iconsax.profile, size: 24.0),
+              icon: Icon(Iconsax.user, size: 24.0, color: Theme.of(context).primaryColor),
               title: Text(
                 'Profile',
                 style: GoogleFonts.montserrat(
                   fontSize: 12.0,
                   fontWeight: _selectedIndex == 3 ? FontWeight.bold : FontWeight.normal,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              selectedColor: Colors.green,
+              selectedColor: Colors.grey,
             ),
           ],
           itemPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
@@ -260,7 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(
           title,
           style: GoogleFonts.montserrat(
-            color: _selectedIndex == index ? selectedColor : (isDarkMode ? Colors.white : Colors.black),
+            color: _selectedIndex == index
+                ? selectedColor
+                : Theme.of(context).textTheme.bodyMedium?.color,
             fontWeight: FontWeight.bold,
           ),
         ),
