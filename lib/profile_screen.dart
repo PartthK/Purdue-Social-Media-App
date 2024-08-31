@@ -19,6 +19,50 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   String? _profileImageUrl;
+  String buttonText = 'Send Friend Request'; // Default button text
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFriendshipStatus();
+  }
+
+  void _checkFriendshipStatus() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
+      final friendDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+
+      // Check if they are already friends
+      List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
+      if (currentUserFriends.contains(widget.userId)) {
+        setState(() {
+          buttonText = 'Friends';
+        });
+        return;
+      }
+
+      // Check if a friend request has already been sent
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .collection('friendRequests')
+          .where('from', isEqualTo: currentUser.email)
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          buttonText = 'Sent Request';
+        });
+      } else {
+        setState(() {
+          buttonText = 'Send Friend Request';
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +135,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(height: 16.0),
                 if (currentUser?.email != widget.userId)
                   ElevatedButton(
-                    onPressed: () {
-                      sendFriendRequest(widget.userId);
-                    },
-                    child: Text('Send Friend Request'),
+                    onPressed: buttonText == 'Send Friend Request' ? () async {
+                      await sendFriendRequest(widget.userId);
+                    } : null,
+                    child: Text(buttonText),
                   ),
               ],
             ),
@@ -127,9 +171,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> sendFriendRequest(String friendId) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
+      final friendDoc = await FirebaseFirestore.instance.collection('users').doc(friendId).get();
+
+      // Check if the current user is already friends with the target user
+      List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
+      if (currentUserFriends.contains(friendId)) {
+        setState(() {
+          buttonText = 'Friends';
+        });
+        return; // Exit the function if they are already friends
+      }
+
+      // Check if there's already a pending friend request
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendId)
+          .collection('friendRequests')
+          .where('from', isEqualTo: currentUser.email)
+          .where('status', isEqualTo: 'pending') // Assuming you have a status field
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          buttonText = 'Sent Request';
+        });
+        return;
+      }
+
+      // Otherwise, send a new friend request
       await FirebaseFirestore.instance.collection('users').doc(friendId).collection('friendRequests').add({
         'from': currentUser.email,
+        'status': 'pending', // Add status field
         'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      setState(() {
+        buttonText = 'Sent Request';
       });
 
       // Send notification
@@ -140,6 +218,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'body': '${currentUser.email} sent you a friend request.',
         },
       );
+
+      print('Friend request sent.');
     }
   }
 }
