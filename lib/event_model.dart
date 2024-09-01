@@ -7,7 +7,6 @@ class Event {
   final DateTime date;
   final String description;
   final String location;
-  final String locationMap;
   final String title;
   final String username;
   final List<String> tags; // Add this field
@@ -19,7 +18,6 @@ class Event {
     required this.date,
     required this.description,
     required this.location,
-    required this.locationMap,
     required this.title,
     required this.username,
     required this.tags, // Add this to the constructor
@@ -33,7 +31,6 @@ class Event {
       date: (json['date'] as Timestamp).toDate(),
       description: json['description'] ?? '',
       location: json['location'] ?? '',
-      locationMap: json['locationMap'] ?? '',
       title: json['title'] ?? '',
       username: json['username'] ?? '',
       tags: List<String>.from(json['tags'] ?? []), // Deserialize tags
@@ -47,7 +44,6 @@ class Event {
       'date': Timestamp.fromDate(date),
       'description': description,
       'location': location,
-      'locationMap': locationMap,
       'title': title,
       'username': username,
       'tags': tags, // Serialize tags

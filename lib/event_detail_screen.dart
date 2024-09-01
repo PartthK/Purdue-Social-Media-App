@@ -85,21 +85,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               ),
             ),
             Text('Username: ${widget.event.username}'),
-            if (widget.event.locationMap.isNotEmpty)
-              GestureDetector(
-                onTap: () async {
-                  final url = Uri.parse(widget.event.locationMap);
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url);
-                  } else {
-                    throw 'Could not launch $url';
-                  }
-                },
-                child: Text(
-                  'Open Location in Google Maps',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
             SizedBox(height: 20),
             Text('Tags:', style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 10),

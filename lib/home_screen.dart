@@ -26,12 +26,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _createdByController = TextEditingController();
-  final TextEditingController _locationMapController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-  List<String> _allTags = ['Music', 'Sports', 'Technology', 'Art', 'Education'];
+  List<String> _allTags = [ 'Tech', 'AI/ML', 'Music', 'Biology', 'Physics', 'Chemistry', 'Sports', 'Art',
+    'Literature', 'Dance', 'Theatre', 'Film', 'Photography', 'Travel', 'Cooking',
+    'Fashion', 'Finance', 'Entrepreneurship', 'Gaming', 'Fitness'];
   List<String> _selectedTags = [];
 
 
@@ -370,30 +369,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   SizedBox(height: 16.0),
-                  TextField(
-                    controller: _createdByController,
-                    decoration: InputDecoration(
-                      labelText: 'Created By',
-                      labelStyle: GoogleFonts.montserrat(),
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
-                  TextField(
-                    controller: _locationMapController,
-                    decoration: InputDecoration(
-                      labelText: 'Location Map URL',
-                      labelStyle: GoogleFonts.montserrat(),
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
-                  TextField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      labelText: 'Username',
-                      labelStyle: GoogleFonts.montserrat(),
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
                   Row(
                     children: [
                       Expanded(
@@ -513,14 +488,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _addEvent() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    final userEmail = user?.email ?? '';
+    final userName = user?.displayName ?? '';
     CollectionReference events = FirebaseFirestore.instance.collection('events');
     await events.add({
       'title': _titleController.text,
       'description': _descriptionController.text,
       'location': _locationController.text,
-      'createdBy': _createdByController.text,
-      'locationMap': _locationMapController.text,
-      'username': _usernameController.text,
+      'createdBy': userName,
+      'username': userEmail,
       'date': Timestamp.fromDate(
         DateTime(
           _selectedDate.year,
@@ -538,9 +515,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _titleController.clear();
     _descriptionController.clear();
     _locationController.clear();
-    _createdByController.clear();
-    _locationMapController.clear();
-    _usernameController.clear();
 
     setState(() {
       _selectedDate = DateTime.now();
