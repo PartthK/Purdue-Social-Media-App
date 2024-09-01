@@ -20,11 +20,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   String? _profileImageUrl;
   String buttonText = 'Send Friend Request'; // Default button text
+  Map<String, String> friendNames = {}; // Store friend emails and their corresponding names
 
   @override
   void initState() {
     super.initState();
     _checkFriendshipStatus();
+    _fetchFriendNames(); // Fetch the names of the friends
+  }
+
+  void _fetchFriendNames() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
+      List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
+
+      // Fetch each friend's name
+      for (String friendEmail in currentUserFriends) {
+        DocumentSnapshot friendDoc = await FirebaseFirestore.instance.collection('users').doc(friendEmail).get();
+        String friendName = friendDoc['name'] ?? friendEmail; // Use email if name is not available
+
+        setState(() {
+          friendNames[friendEmail] = friendName; // Store friend's name using email as key
+        });
+      }
+    }
   }
 
   void _checkFriendshipStatus() async {
@@ -138,9 +159,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: GoogleFonts.montserrat(fontSize: 24.0, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 8.0),
-                ...friends.map((friend) => Text(
-                  friend,
-                  style: GoogleFonts.montserrat(fontSize: 18.0),
+                ...friends.map((friendEmail) => FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance.collection('users').doc(friendEmail).get(),
+                  builder: (context, friendSnapshot) {
+                    if (friendSnapshot.connectionState == ConnectionState.waiting) {
+                      return Text(
+                        friendEmail,
+                        style: GoogleFonts.montserrat(fontSize: 18.0),
+                      );
+                    }
+
+                    if (friendSnapshot.hasError || !friendSnapshot.hasData || !friendSnapshot.data!.exists) {
+                      return Text(
+                        friendEmail,
+                        style: GoogleFonts.montserrat(fontSize: 18.0),
+                      );
+                    }
+
+                    final friendData = friendSnapshot.data!.data() as Map<String, dynamic>;
+                    final friendName = friendData['name'] ?? friendEmail;
+
+                    return Text(
+                      '$friendName ($friendEmail)',
+                      style: GoogleFonts.montserrat(fontSize: 18.0),
+                    );
+                  },
                 )),
                 SizedBox(height: 16.0),
                 if (currentUser?.email != widget.userId)
@@ -225,7 +268,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         to: friendId,
         data: {
           'title': 'Friend Request',
-          'body': '${currentUser.email} sent you a friend request.',
+          'body': '${currentUser.email} sent you a friend request',
+
         },
       );
 
