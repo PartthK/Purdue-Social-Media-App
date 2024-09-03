@@ -11,10 +11,11 @@ class EventScreen extends StatefulWidget {
   _EventScreenState createState() => _EventScreenState();
 }
 
-class _EventScreenState extends State<EventScreen> {
+class _EventScreenState extends State<EventScreen> with SingleTickerProviderStateMixin {
   List<Event> events = [];
   List<Event> filteredEvents = [];
   TextEditingController searchController = TextEditingController();
+  late TabController _tabController;
 
   @override
   void initState() {
@@ -22,6 +23,7 @@ class _EventScreenState extends State<EventScreen> {
     searchController.addListener(() {
       filterEvents();
     });
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   void filterEvents() {
@@ -45,69 +47,97 @@ class _EventScreenState extends State<EventScreen> {
   @override
   void dispose() {
     searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      appBar: AppBar(
+        title: Text('Events'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'Upcoming Events'),
+            Tab(text: 'Recommended'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: "Search Events",
-                hintText: "Search by title, description, location, or username",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                ),
+          buildUpcomingEventsPage(),
+          buildRecommendedEventsPage(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildUpcomingEventsPage() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              labelText: "Search Events",
+              hintText: "Search by title, description, location, or username",
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(25.0)),
               ),
             ),
           ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('events')
-                  .where('date', isGreaterThanOrEqualTo: Timestamp.now())
-                  .orderBy('date', descending: false)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('events')
+                .where('date', isGreaterThanOrEqualTo: Timestamp.now())
+                .orderBy('date', descending: false)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text('No events found'));
-                }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(child: Text('No events found'));
+              }
 
-                events = snapshot.data!.docs.map((doc) {
-                  return Event.fromJson(doc.id, doc.data() as Map<String, dynamic>);
-                }).toList();
+              events = snapshot.data!.docs.map((doc) {
+                return Event.fromJson(doc.id, doc.data() as Map<String, dynamic>);
+              }).toList();
 
-                // Initially, show all events
-                if (searchController.text.isEmpty) {
-                  filteredEvents = events;
-                }
+              // Initially, show all events
+              if (searchController.text.isEmpty) {
+                filteredEvents = events;
+              }
 
-                return ListView.builder(
-                  itemCount: filteredEvents.length,
-                  itemBuilder: (context, index) {
-                    Event event = filteredEvents[index];
-                    return EventCard(event: event);
-                  },
-                );
-              },
-            ),
+              return ListView.builder(
+                itemCount: filteredEvents.length,
+                itemBuilder: (context, index) {
+                  Event event = filteredEvents[index];
+                  return EventCard(event: event);
+                },
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildRecommendedEventsPage() {
+    // Placeholder widget for Recommended Events page
+    return Center(
+      child: Text('Recommended events based on your profile tags will be displayed here.'),
     );
   }
 }
