@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'event_detail_screen.dart';
 import 'event_model.dart';
@@ -34,7 +35,7 @@ class _EventScreenState extends State<EventScreen> with SingleTickerProviderStat
           return event.title.toLowerCase().contains(query) ||
               event.description.toLowerCase().contains(query) ||
               event.location.toLowerCase().contains(query) ||
-              event.createdBy.toLowerCase().contains(query); // Added createdBy for username search
+              event.createdBy.toLowerCase().contains(query);
         }).toList();
       });
     } else {
@@ -115,7 +116,6 @@ class _EventScreenState extends State<EventScreen> with SingleTickerProviderStat
                 return Event.fromJson(doc.id, doc.data() as Map<String, dynamic>);
               }).toList();
 
-              // Initially, show all events
               if (searchController.text.isEmpty) {
                 filteredEvents = events;
               }
@@ -135,11 +135,75 @@ class _EventScreenState extends State<EventScreen> with SingleTickerProviderStat
   }
 
   Widget buildRecommendedEventsPage() {
-    // Placeholder widget for Recommended Events page
-    return Center(
-      child: Text('Recommended events based on your profile tags will be displayed here.'),
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Center(child: Text('Please sign in to see recommended events.'));
+    }
+
+    final userEmail = user.email;
+
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: userEmail)
+          .limit(1)
+          .get(),
+      builder: (context, userSnapshot) {
+        if (userSnapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        if (userSnapshot.hasError) {
+          return Center(child: Text('Error: ${userSnapshot.error}'));
+        }
+
+        if (!userSnapshot.hasData || userSnapshot.data!.docs.isEmpty) {
+          return Center(child: Text('No user profile found for this email.'));
+        }
+
+        var userProfile = userSnapshot.data!.docs.first.data() as Map<String, dynamic>;
+        var userTags = List<String>.from(userProfile['tags'] ?? []);
+
+        if (userTags.isEmpty) {
+          return Center(child: Text('No tags found in your profile.'));
+        }
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('events')
+              .where('tags', arrayContainsAny: userTags)
+              .snapshots(),
+          builder: (context, eventSnapshot) {
+            if (eventSnapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (eventSnapshot.hasError) {
+              return Center(child: Text('Error: ${eventSnapshot.error}'));
+            }
+
+            if (!eventSnapshot.hasData || eventSnapshot.data!.docs.isEmpty) {
+              return Center(child: Text('No recommended events found.'));
+            }
+
+            var recommendedEvents = eventSnapshot.data!.docs.map((doc) {
+              return Event.fromJson(doc.id, doc.data() as Map<String, dynamic>);
+            }).toList();
+
+            return ListView.builder(
+              itemCount: recommendedEvents.length,
+              itemBuilder: (context, index) {
+                Event event = recommendedEvents[index];
+                return EventCard(event: event);
+              },
+            );
+          },
+        );
+      },
     );
   }
+
 }
 
 class EventCard extends StatelessWidget {
