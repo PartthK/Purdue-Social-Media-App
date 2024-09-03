@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart' as custom_auth;
 import 'signup_screen.dart';
+import 'forgot_password_screen.dart';  // Import the ForgotPasswordScreen
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -144,6 +145,20 @@ class _LoginScreenState extends State<LoginScreen> {
               },
               child: Text(
                 'Don\'t have an account? Sign up',
+                style: GoogleFonts.montserrat(
+                  color: _isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),  // Navigate to ForgotPasswordScreen
+                );
+              },
+              child: Text(
+                'Forgot Password?',
                 style: GoogleFonts.montserrat(
                   color: _isDarkMode ? Colors.white : Colors.black,
                 ),
