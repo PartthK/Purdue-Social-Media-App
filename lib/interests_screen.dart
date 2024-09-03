@@ -84,56 +84,51 @@ class _InterestsScreenState extends State<InterestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Select the topics of your interest',
-          style: GoogleFonts.montserrat(),
-        ),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Text(
+              'Select your interests',
+              style: GoogleFonts.montserrat(
+                fontSize: 24.0, // Adjust the font size as needed
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16.0),
             Expanded(
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 3,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: _interests.length,
-                itemBuilder: (context, index) {
-                  final interest = _interests[index];
+              child: Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: _interests.map((interest) {
                   final isSelected = _selectedInterests.contains(interest);
-
-                  return GestureDetector(
-                    onTap: () {
-                      if (isSelected) {
-                        _selectedInterests.remove(interest);
-                      } else {
-                        _selectedInterests.add(interest);
-                      }
-                      setState(() {});
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        color: isSelected ? Colors.black : Colors.white,
-                        border: Border.all(color: Colors.black),
-                      ),
-                      child: Center(
-                        child: Text(
-                          interest,
-                          style: GoogleFonts.montserrat(
-                            color: isSelected ? Colors.white : Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  return ChoiceChip(
+                    label: Text(
+                      interest,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18.0,
+                        color: isSelected ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedInterests.add(interest);
+                        } else {
+                          _selectedInterests.remove(interest);
+                        }
+                      });
+                    },
+                    selectedColor: Colors.black,
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      side: BorderSide(color: Colors.black),
+                    ),
                   );
-                },
+                }).toList(),
               ),
             ),
             SizedBox(height: 16.0),
@@ -165,7 +160,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
               ),
               child: _isLoading
                   ? CircularProgressIndicator(color: Colors.white)

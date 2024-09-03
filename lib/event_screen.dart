@@ -51,9 +51,6 @@ class _EventScreenState extends State<EventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Upcoming Events'),
-      ),
       body: Column(
         children: [
           Padding(

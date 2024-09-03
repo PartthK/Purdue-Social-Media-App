@@ -50,30 +50,126 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.event.title),
+      body: DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, controller) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).canvasColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: ListView(
+            controller: controller,
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              Container(
+                height: 200,
+                color: Colors.blue,
+                alignment: Alignment.center,
+                child: Text(
+                  widget.event.title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(Icons.calendar_today, 'Date', DateFormat('MMM d, y - h:mm a').format(widget.event.date)),
+                  _buildInfoRow(Icons.location_on, 'Location', ''),
+                  _buildInfoRow(Icons.person, 'Created by', widget.event.createdBy),
+                  _buildInfoRow(Icons.group, 'RSVP Count', '$_currentRSVPCount'),
+                  SizedBox(height: 16),
+                  Text(
+                    'Description',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    widget.event.description,
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                  SizedBox(height: 20),
+                  Text('Tags:', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+                  SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 4.0,
+                    children: widget.event.tags.map((tag) {
+                      return Chip(
+                        label: Text(tag),
+                        backgroundColor: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.black
+                              : Colors.white,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 16),
+                  Center(
+                    child: !_hasRSVPed
+                        ? ElevatedButton(
+                      onPressed: () => _incrementRSVPCount(widget.event.documentId),
+                      child: Text('RSVP'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        textStyle: TextStyle(fontSize: 16),
+                      ),
+                    )
+                        : Text(
+                      'You have already RSVPed to this event.',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 16,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    if (label == 'Location') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
           children: [
-            Text('Title: ${widget.event.title}'),
-            Text('Created By: ${widget.event.createdBy}'),
-            Text('RSVP Count: $_currentRSVPCount'),
-            Text('Date: ${widget.event.date}'),
-            Text('Description: ${widget.event.description}'),
+            Icon(icon, size: 20, color: Colors.blue),
+            SizedBox(width: 8),
             RichText(
               text: TextSpan(
-                text: 'Location: ',
-                style: TextStyle(color: Colors.black),
+                text: '$label: ',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
                 children: [
                   TextSpan(
                     text: widget.event.location,
-                    style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                    style: TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline,
+                    ),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () async {
-                        final Uri url = Uri.parse("https://www.google.com/maps/search/?api=1&query=${widget.event.location}");
+                        final Uri url = Uri.parse(
+                            "https://www.google.com/maps/search/?api=1&query=${widget.event.location}");
                         if (await canLaunchUrl(url)) {
                           await launchUrl(url);
                         } else {
@@ -84,61 +180,39 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 ],
               ),
             ),
-            Text('Username: ${widget.event.username}'),
-            SizedBox(height: 20),
-            Text('Tags:', style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 10),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 4.0,
-              children: widget.event.tags.map((tag) {
-                return Chip(
-                  label: Text(tag),
-                  backgroundColor: Colors.blue.shade100,
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 20),
-            if (!_hasRSVPed)
-              ElevatedButton(
-                onPressed: () => _incrementRSVPCount(widget.event.documentId),
-                child: Text('RSVP'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.blue,
-                  textStyle: TextStyle(fontSize: 16),
-                ),
-              )
-            else
-              Text(
-                'You have already RSVPed to this event.',
-                style: TextStyle(color: Colors.red, fontSize: 16),
-              ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.blue),
-          SizedBox(width: 8),
-          Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.blue),
+            SizedBox(width: 8),
+            Text(
+              '$label: ',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(fontSize: 16, color: Colors.white, decoration: TextDecoration.none),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _incrementRSVPCount(String documentId) async {
     if (_userId != null) {
       FirebaseFirestore.instance.runTransaction((transaction) async {
-        DocumentReference eventRef = FirebaseFirestore.instance.collection('events').doc(documentId);
-        DocumentReference userRef = FirebaseFirestore.instance.collection('users').doc(_userId);
+        DocumentReference eventRef =
+        FirebaseFirestore.instance.collection('events').doc(documentId);
+        DocumentReference userRef =
+        FirebaseFirestore.instance.collection('users').doc(_userId);
 
         DocumentSnapshot eventSnapshot = await transaction.get(eventRef);
         DocumentSnapshot userSnapshot = await transaction.get(userRef);
@@ -167,8 +241,23 @@ void showEventDetails(BuildContext context, Event event) {
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => EventDetailScreen(event: event),
+    builder: (context) => DraggableScrollableSheet(
+      initialChildSize: 0.9,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (_, controller) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).canvasColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: ListView(
+          controller: controller,
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            // Your event details here
+          ],
+        ),
+      ),
+    ),
   );
 }
-
-
