@@ -78,9 +78,6 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Search Users'),
-      ),
       body: Column(
         children: [
           Padding(
@@ -117,15 +114,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          searchController.clear();
-          setState(() {
-            filteredUsers = users;
-          });
-        },
-        child: Icon(Icons.clear),
       ),
     );
   }

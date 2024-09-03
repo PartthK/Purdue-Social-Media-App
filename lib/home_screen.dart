@@ -201,16 +201,16 @@ class _HomeScreenState extends State<HomeScreen> {
           if (userEmail.isNotEmpty) ProfileScreen(userId: userEmail), // Pass the actual userId
         ],
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
+
+      floatingActionButton: _selectedIndex == 0 ? FloatingActionButton(
         onPressed: () => _showAddEventModal(context),
         child: Icon(
           Icons.add,
-          color: Colors.white,
+          color: Theme.of(context).hintColor,
         ),
         backgroundColor: themeData.primaryColor,
-      )
-          : null,
+      ) : null,
+
       bottomNavigationBar: Container(
         height: 80.0,
         decoration: BoxDecoration(

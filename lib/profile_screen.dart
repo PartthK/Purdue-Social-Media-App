@@ -19,32 +19,43 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   String? _profileImageUrl;
-  String buttonText = 'Send Friend Request'; // Default button text
-  Map<String, String> friendNames = {}; // Store friend emails and their corresponding names
+  String buttonText = 'Send Friend Request';
+  int eventCount = 0;
+  int friendCount = 0;
 
   @override
   void initState() {
     super.initState();
     _checkFriendshipStatus();
-    _fetchFriendNames(); // Fetch the names of the friends
+    _fetchEventCount();
+    _fetchFriendCount();
   }
 
-  void _fetchFriendNames() async {
+  void _fetchFriendCount() async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
-      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
-      List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+      List<String> friends = List<String>.from(currentUserDoc['friends'] ?? []);
 
-      // Fetch each friend's name
-      for (String friendEmail in currentUserFriends) {
-        DocumentSnapshot friendDoc = await FirebaseFirestore.instance.collection('users').doc(friendEmail).get();
-        String friendName = friendDoc['name'] ?? friendEmail; // Use email if name is not available
+      setState(() {
+        friendCount = friends.length;
+      });
+    }
+  }
 
-        setState(() {
-          friendNames[friendEmail] = friendName; // Store friend's name using email as key
-        });
-      }
+  void _fetchEventCount() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
+          .collection('events')
+          .where('userId', isEqualTo: widget.userId)
+          .get();
+
+      setState(() {
+        eventCount = eventSnapshot.docs.length;
+      });
     }
   }
 
@@ -53,18 +64,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (currentUser != null) {
       final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
-      final friendDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
 
-      // Check if they are already friends
       List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
       if (currentUserFriends.contains(widget.userId)) {
         setState(() {
-          buttonText = 'Friends';
+          buttonText = 'Already Friends';
         });
         return;
       }
 
-      // Check if a friend request has already been sent
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.userId)
@@ -91,6 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      backgroundColor: Color(0xFF0D1114),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('users').doc(widget.userId).get(),
         builder: (context, snapshot) {
@@ -102,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return Center(
               child: Text(
                 'Error fetching profile details',
-                style: GoogleFonts.montserrat(fontSize: 24.0),
+                style: GoogleFonts.montserrat(fontSize: 24.0, color: Colors.white),
               ),
             );
           }
@@ -111,92 +120,175 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return Center(
               child: Text(
                 'Profile not found',
-                style: GoogleFonts.montserrat(fontSize: 24.0),
+                style: GoogleFonts.montserrat(fontSize: 24.0, color: Colors.white),
               ),
             );
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
           final name = data['name'] ?? 'N/A';
-          final tags = List<String>.from(data['tags'] ?? []);
-          final friends = List<String>.from(data['friends'] ?? []);
           _profileImageUrl = data['profileImageUrl'] ?? null;
 
-          return Padding(
-            padding: EdgeInsets.all(16.0),
+          return SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundImage: _profileImageUrl != null
-                        ? NetworkImage(_profileImageUrl!)
-                        : AssetImage('assets/default_avatar.png') as ImageProvider,
-                    child: _profileImageUrl == null
-                        ? Icon(Icons.camera_alt, color: Colors.white, size: 30)
-                        : null,
+                Stack(
+                  children: [
+                    Container(
+                      height: 200.0,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.orangeAccent, Colors.deepOrange],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 35.0,
+                      left: 20.0,
+                      right: 20.0,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: _pickImage,
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: _profileImageUrl != null
+                                  ? NetworkImage(_profileImageUrl!)
+                                  : AssetImage('assets/default_avatar.png') as ImageProvider,
+                              child: _profileImageUrl == null
+                                  ? Icon(Icons.camera_alt, color: Colors.white, size: 30)
+                                  : null,
+                            ),
+                          ),
+                          SizedBox(height: 10.0),
+                          Text(
+                            name,
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontSize: 24.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildCounter('Events', eventCount),
+                      _buildCounter('Friends', friendCount),
+                    ],
                   ),
                 ),
-                SizedBox(height: 16.0),
-                Text(
-                  'Email: ${widget.userId}',
-                  style: GoogleFonts.montserrat(fontSize: 24.0, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16.0),
-                Text(
-                  'Interests:',
-                  style: GoogleFonts.montserrat(fontSize: 24.0, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8.0),
-                ...tags.map((tag) => Text(
-                  tag,
-                  style: GoogleFonts.montserrat(fontSize: 18.0),
-                )),
-                Text(
-                  'Friends:',
-                  style: GoogleFonts.montserrat(fontSize: 24.0, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8.0),
-                ...friends.map((friendEmail) => FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance.collection('users').doc(friendEmail).get(),
-                  builder: (context, friendSnapshot) {
-                    if (friendSnapshot.connectionState == ConnectionState.waiting) {
-                      return Text(
-                        friendEmail,
-                        style: GoogleFonts.montserrat(fontSize: 18.0),
-                      );
-                    }
-
-                    if (friendSnapshot.hasError || !friendSnapshot.hasData || !friendSnapshot.data!.exists) {
-                      return Text(
-                        friendEmail,
-                        style: GoogleFonts.montserrat(fontSize: 18.0),
-                      );
-                    }
-
-                    final friendData = friendSnapshot.data!.data() as Map<String, dynamic>;
-                    final friendName = friendData['name'] ?? friendEmail;
-
-                    return Text(
-                      '$friendName ($friendEmail)',
-                      style: GoogleFonts.montserrat(fontSize: 18.0),
-                    );
-                  },
-                )),
-                SizedBox(height: 16.0),
-                if (currentUser?.email != widget.userId)
-                  ElevatedButton(
-                    onPressed: buttonText == 'Send Friend Request' ? () async {
-                      await sendFriendRequest(widget.userId);
-                    } : null,
-                    child: Text(buttonText),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      if (currentUser?.email == widget.userId)
+                        _buildProfileButton('Edit Profile', () {
+                          // Handle Edit Profile action
+                        }),
+                      _buildProfileButton('Interests', () {
+                        // Handle Interests action
+                      }),
+                      if (currentUser?.email != widget.userId) // Only show if not own profile
+                        ElevatedButton(
+                          onPressed: buttonText == 'Send Friend Request' || buttonText == 'Sent Request'
+                              ? () async {
+                            await sendFriendRequest(widget.userId);
+                          }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orangeAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                          ),
+                          child: Text(
+                            buttonText,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
+                Divider(color: Colors.white38),
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.camera_alt_outlined, color: Colors.white38, size: 100),
+                      Text(
+                        'No Events Posted Yet',
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white38,
+                          fontSize: 20.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildCounter(String label, int count) {
+    return Column(
+      children: [
+        Text(
+          '$count',
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 4.0),
+        Text(
+          label,
+          style: GoogleFonts.montserrat(
+            color: Colors.white70,
+            fontSize: 16.0,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileButton(String text, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey[800],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.montserrat(
+          fontSize: 16.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -210,7 +302,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final snapshot = await uploadTask.whenComplete(() => null);
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // Update Firestore with the new profile image URL
       await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
         'profileImageUrl': downloadUrl,
       });
@@ -225,24 +316,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
-      final friendDoc = await FirebaseFirestore.instance.collection('users').doc(friendId).get();
 
-      // Check if the current user is already friends with the target user
       List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
       if (currentUserFriends.contains(friendId)) {
         setState(() {
           buttonText = 'Friends';
         });
-        return; // Exit the function if they are already friends
+        return;
       }
 
-      // Check if there's already a pending friend request
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(friendId)
           .collection('friendRequests')
           .where('from', isEqualTo: currentUser.email)
-          .where('status', isEqualTo: 'pending') // Assuming you have a status field
+          .where('status', isEqualTo: 'pending')
           .get();
 
       if (snapshot.docs.isNotEmpty) {
@@ -252,10 +340,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return;
       }
 
-      // Otherwise, send a new friend request
       await FirebaseFirestore.instance.collection('users').doc(friendId).collection('friendRequests').add({
         'from': currentUser.email,
-        'status': 'pending', // Add status field
+        'status': 'pending',
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -263,18 +350,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         buttonText = 'Sent Request';
       });
 
-      // Send notification
       FirebaseMessaging.instance.sendMessage(
         to: friendId,
         data: {
           'title': 'Friend Request',
           'body': '${currentUser.email} sent you a friend request',
-
         },
       );
 
       print('Friend request sent.');
     }
   }
-  //hello
 }
+// hello

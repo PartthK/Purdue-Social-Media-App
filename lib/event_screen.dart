@@ -54,16 +54,13 @@ class _EventScreenState extends State<EventScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Events'),
-        bottom: TabBar(
+      appBar: TabBar(
           controller: _tabController,
           tabs: [
             Tab(text: 'Upcoming Events'),
             Tab(text: 'Recommended'),
           ],
         ),
-      ),
       body: TabBarView(
         controller: _tabController,
         children: [
