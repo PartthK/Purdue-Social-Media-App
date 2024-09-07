@@ -47,7 +47,7 @@ class _InterestsScreenState extends State<InterestsScreen> {
       _retryCount += 1;
       await _checkEmailVerification();
 
-      if (_isEmailVerified || _retryCount >= 12) {  // Stop after 60 seconds (12*5 seconds)
+      if (_isEmailVerified) {  // Stop after 60 seconds (12*5 seconds)
         timer.cancel();
       }
     });

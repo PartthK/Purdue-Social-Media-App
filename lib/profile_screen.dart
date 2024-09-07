@@ -225,32 +225,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       if (currentUser?.email == widget.userId)
-                        _buildProfileButton('Edit Profile', () {
-                          // Handle Edit Profile action
+                        Expanded(
+                          child: _buildProfileButton('Edit Profile', () {
+                            // Handle Edit Profile action
+                          }),
+                        ),
+                      if (currentUser?.email == widget.userId)
+                        SizedBox(width: 10),  // Add spacing between buttons
+                      Expanded(
+                        child: _buildProfileButton('Interests', () {
+                          // Handle Interests action
                         }),
-                      _buildProfileButton('Interests', () {
-                        // Handle Interests action
-                      }),
+                      ),
                       if (currentUser?.email != widget.userId) // Only show if not own profile
-                        ElevatedButton(
-                          onPressed: buttonText == 'Send Friend Request' || buttonText == 'Sent Request'
-                              ? () async {
-                            await sendFriendRequest(widget.userId);
-                          }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orangeAccent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
+                        SizedBox(width: 10),  // Add spacing between buttons
+                      if (currentUser?.email != widget.userId)
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: buttonText == 'Send Friend Request' || buttonText == 'Sent Request'
+                                ? () async {
+                              await sendFriendRequest(widget.userId);
+                            }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: buttonText == 'Sent Request' ? Colors.grey : Colors.orangeAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                             ),
-                            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                          ),
-                          child: Text(
-                            buttonText,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                            child: Text(
+                              buttonText,
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
