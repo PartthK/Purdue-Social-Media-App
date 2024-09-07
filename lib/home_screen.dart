@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -401,7 +403,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   SizedBox(height: 16.0),
-                  // Tag Selection
                   Text(
                     'Tags:',
                     style: GoogleFonts.montserrat(
@@ -410,44 +411,39 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   SizedBox(height: 8.0),
-                  Wrap(
-                    spacing: 8.0,
-                    children: _allTags.map((tag) {
-                      final isSelected = _selectedTags.contains(tag);
-                      return FilterChip(
-                        label: Text(tag),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              _selectedTags.add(tag);
-                            } else {
-                              _selectedTags.remove(tag);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
+                  MultiSelectDialogField(
+                    items: _allTags.map((tag) => MultiSelectItem<String>(tag, tag)).toList(),
+                    initialValue: _selectedTags,
+                    onConfirm: (values) {
+                      setState(() {
+                        _selectedTags = List<String>.from(values);
+                      });
+                    },
+                    buttonText: Text('Select Tags'),
+                    title: Text('Tags'),
+                    selectedColor: Colors.black,
+                    unselectedColor: Colors.black.withOpacity(0.5),
+                    searchable: true,
                   ),
                   SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: () {
-                      _addEvent(); // Call _addEvent to save the event and update Firestore
+                      _addEvent();
                       Navigator.pop(context); // Close the modal
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      backgroundColor: Colors.black, // Text color
+                      backgroundColor: Colors.black,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0), // Border radius
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0), // Button size
+                      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                     ),
                     child: Text(
                       'Save Event',
                       style: GoogleFonts.montserrat(
-                        fontSize: 16.0, // Font size
-                        fontWeight: FontWeight.bold, // Bold text
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
