@@ -57,11 +57,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.orangeAccent, Colors.deepOrange],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: Color(0xFF0D1114),
           ),
           child: AppBar(
             title: Text('Event Details', style: GoogleFonts.montserrat()),
@@ -95,7 +91,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             children: [
               Container(
                 height: 200,
-                color: Colors.blue,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orangeAccent, Colors.deepOrange],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
                 alignment: Alignment.center,
                 child: Text(
                   widget.event.title,
@@ -149,7 +151,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     child: !_hasRSVPed
                         ? ElevatedButton(
                       onPressed: () => _incrementRSVPCount(widget.event.documentId),
-                      child: Text('RSVP'),
+                      child: Text('RSVP', style: TextStyle(color: Theme.of(context).primaryColor),),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                         textStyle: TextStyle(fontSize: 16),

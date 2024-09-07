@@ -72,11 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Iconsax.search_normal),
-            onPressed: () => _showProfileOptions(context, userEmail),
-          ),
-          IconButton(
-            icon: Icon(Iconsax.user),
+            icon: Icon(Iconsax.setting_24),
             onPressed: () => _showProfileOptions(context, userEmail),
           ),
         ],
@@ -102,16 +98,41 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     margin: EdgeInsets.only(bottom: 0),
                     padding: EdgeInsets.only(left: 16.0, bottom: 16.0),
-                    child: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Text(
-                        'BoilerVibe',
-                        style: GoogleFonts.outfit(
-                          color: Colors.orange,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Text(
+                            'BoilerVibe',
+                            style: GoogleFonts.outfit(
+                              color: Colors.orange,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16.0, bottom: 0), // Add padding to the right and bottom
+                          child: Align(
+                            alignment: Alignment.bottomRight, // Aligns the button to the bottom-right of the DrawerHeader
+                            child: Consumer<custom_auth.AuthProvider>(
+                              builder: (context, authProvider, _) {
+                                final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+                                return FloatingActionButton(
+                                  onPressed: () {
+                                    print("FloatingActionButton pressed");
+                                    authProvider.toggleThemeMode();
+                                  },
+                                  child: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+                                  mini: true,
+                                  backgroundColor: isDarkMode ? Colors.white : Colors.black,
+                                  foregroundColor: isDarkMode ? Colors.black : Colors.white,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   _buildDrawerItem(
@@ -168,25 +189,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => _launchURL('https://boilervibe.framer.website/'),
                   ),
                 ],
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Consumer<custom_auth.AuthProvider>(
-                builder: (context, authProvider, _) {
-                  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-                  return FloatingActionButton(
-                    onPressed: () {
-                      print("FloatingActionButton pressed");
-                      authProvider.toggleThemeMode();
-                    },
-                    child: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-                    mini: true,
-                    backgroundColor: isDarkMode ? Colors.white : Colors.black,
-                    foregroundColor: isDarkMode ? Colors.black : Colors.white,
-                  );
-                },
               ),
             ),
           ],
@@ -544,18 +546,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: Icon(Iconsax.user, color: Theme.of(context).primaryColor),
-                title: Text('View Profile', style: GoogleFonts.montserrat()),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ProfileScreen(userId: userEmail)), // Replace with actual userId
-                  );
-                },
-              ),
               ListTile(
                 leading: Icon(Iconsax.logout, color: Colors.red),
                 title: Text('Logout', style: GoogleFonts.montserrat(color: Colors.red)),
