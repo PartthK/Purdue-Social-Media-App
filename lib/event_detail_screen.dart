@@ -1,10 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'event_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import 'home_screen.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -50,6 +53,33 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.orangeAccent, Colors.deepOrange],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            title: Text('Event Details', style: GoogleFonts.montserrat()),
+            backgroundColor: Colors.transparent, // Make the AppBar background transparent
+            elevation: 0, // Remove AppBar shadow
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()), // Ensure HomeScreen is imported
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+      backgroundColor: Color(0xFF0D1114),
       body: DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,

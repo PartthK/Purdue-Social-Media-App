@@ -6,6 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:purdue_social/search_screen.dart';
+
+import 'home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -99,6 +102,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      appBar: currentUser?.email == widget.userId
+          ? null  // Hide the AppBar if it's the current user's profile
+          : PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.orangeAccent, Colors.deepOrange],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            title: Text('Profile', style: GoogleFonts.montserrat()),
+            backgroundColor: Colors.transparent, // Make the AppBar background transparent
+            elevation: 0, // Remove AppBar shadow
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()), // Ensure HomeScreen is imported
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       backgroundColor: Color(0xFF0D1114),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('users').doc(widget.userId).get(),

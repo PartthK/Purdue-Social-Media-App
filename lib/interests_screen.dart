@@ -2,6 +2,7 @@ import 'dart:async';  // Import Timer
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:purdue_social/signup_screen.dart';
 import 'auth_provider.dart' as my_auth_provider;  // Aliased import
 import 'package:google_fonts/google_fonts.dart';
 import 'home_screen.dart';
@@ -84,6 +85,18 @@ class _InterestsScreenState extends State<InterestsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Select Interests'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => SignupScreen()),
+            );
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
