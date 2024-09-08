@@ -6,6 +6,7 @@ import 'signup_screen.dart';
 import 'forgot_password_screen.dart';  // Import the ForgotPasswordScreen
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -32,6 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       try {
         await Provider.of<custom_auth.AuthProvider>(context, listen: false).login(email, password);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
       } on FirebaseAuthException catch (e) {
         setState(() {
           if (e.code == 'invalid-credential') {
