@@ -328,6 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+
   void _showAddEventModal(BuildContext context) {
     showModalBottomSheet(
       context: context,

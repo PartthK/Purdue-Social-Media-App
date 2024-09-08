@@ -200,20 +200,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     ),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () async {
+                        final Uri url = Uri.parse(
+                            "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(widget.event.location)}");
                         try {
-                          final Uri url = Uri.parse(
-                              "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(widget.event.location)}");
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(url);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Could not launch $url')),
-                            );
-                          }
+                          await _launchURL(url.toString());
                         } catch (e) {
-                          print("Error launching URL: $e");
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to launch map URL')),
+                            SnackBar(content: Text('Could not launch $url')),
                           );
                         }
                       },
@@ -244,6 +237,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           ],
         ),
       );
+    }
+  }
+
+
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
   }
 
