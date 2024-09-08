@@ -76,7 +76,7 @@ class _SignupScreenState extends State<SignupScreen> {
             foregroundColor: _isDarkMode ? Colors.black : Colors.white,
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         body: Padding(
           padding: EdgeInsets.all(48.0),
           child: Column(
