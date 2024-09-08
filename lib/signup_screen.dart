@@ -162,20 +162,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                  );
-                },
-                child: Text(
-                  'Already have an account? Login',
-                  style: GoogleFonts.montserrat(
-                    color: _isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-              ),
               if (_validationMessage.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
