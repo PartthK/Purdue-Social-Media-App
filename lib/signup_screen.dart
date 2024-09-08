@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'interests_screen.dart';
+import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -158,6 +159,20 @@ class _SignupScreenState extends State<SignupScreen> {
                     fontSize: 16.0,
                     fontWeight: FontWeight.bold,
                     color: _isDarkMode ? Colors.black : Colors.white,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                  );
+                },
+                child: Text(
+                  'Already have an account? Login',
+                  style: GoogleFonts.montserrat(
+                    color: _isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
               ),
