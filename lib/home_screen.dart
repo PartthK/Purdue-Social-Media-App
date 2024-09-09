@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
@@ -24,17 +27,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   bool isDarkMode = false;
-
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-  List<String> _allTags = [ 'Tech', 'AI/ML', 'Music', 'Biology', 'Physics', 'Chemistry', 'Sports', 'Art',
+  List<String> _allTags = [
+    'Tech', 'AI/ML', 'Music', 'Biology', 'Physics', 'Chemistry', 'Sports', 'Art',
     'Literature', 'Dance', 'Theatre', 'Film', 'Photography', 'Travel', 'Cooking',
-    'Fashion', 'Finance', 'Entrepreneurship', 'Gaming', 'Fitness'];
+    'Fashion', 'Finance', 'Entrepreneurship', 'Gaming', 'Fitness'
+  ];
   List<String> _selectedTags = [];
-
+  File? _image;
 
   @override
   Widget build(BuildContext context) {
@@ -114,9 +118,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(right: 16.0, bottom: 0), // Add padding to the right and bottom
+                          padding: const EdgeInsets.only(right: 16.0, bottom: 0),
                           child: Align(
-                            alignment: Alignment.bottomRight, // Aligns the button to the bottom-right of the DrawerHeader
+                            alignment: Alignment.bottomRight,
                             child: Consumer<custom_auth.AuthProvider>(
                               builder: (context, authProvider, _) {
                                 final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -201,11 +205,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           EventScreen(),
           SearchScreen(),
-          if (userEmail.isNotEmpty) NotificationsScreen(userId: userEmail), // Pass the actual userId
-          if (userEmail.isNotEmpty) ProfileScreen(userId: userEmail), // Pass the actual userId
+          if (userEmail.isNotEmpty) NotificationsScreen(userId: userEmail),
+          if (userEmail.isNotEmpty) ProfileScreen(userId: userEmail),
         ],
       ),
-
       floatingActionButton: _selectedIndex == 0 ? FloatingActionButton(
         onPressed: () => _showAddEventModal(context),
         child: Icon(
@@ -214,7 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         backgroundColor: themeData.primaryColor,
       ) : null,
-
       bottomNavigationBar: Container(
         height: 80.0,
         decoration: BoxDecoration(
@@ -225,8 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           border: Border(
             top: BorderSide(
-              color: Colors.grey, // Thin grey border
-              width: 0.2, // Adjust the width as needed
+              color: Colors.grey,
+              width: 0.2,
             ),
           ),
         ),
@@ -285,38 +287,29 @@ class _HomeScreenState extends State<HomeScreen> {
               selectedColor: Colors.grey,
             ),
           ],
-          itemPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
         ),
       ),
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, int index, Color selectedColor, Color bubbleColor, bool isDarkMode) {
+  Widget _buildDrawerItem(IconData icon, String text, int index, Color selectedColor, Color unselectedColor, bool isDarkMode) {
     return ListTile(
       leading: Icon(
         icon,
-        color: _selectedIndex == index ? selectedColor : (isDarkMode ? Colors.white : Colors.black),
+        color: _selectedIndex == index ? selectedColor : unselectedColor,
       ),
-      title: Container(
-        decoration: BoxDecoration(
-          color: _selectedIndex == index ? bubbleColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-        child: Text(
-          title,
-          style: GoogleFonts.montserrat(
-            color: _selectedIndex == index
-                ? selectedColor
-                : Theme.of(context).textTheme.bodyMedium?.color,
-            fontWeight: FontWeight.bold,
-          ),
+      title: Text(
+        text,
+        style: GoogleFonts.montserrat(
+          fontSize: 16.0,
+          fontWeight: _selectedIndex == index ? FontWeight.bold : FontWeight.normal,
+          color: _selectedIndex == index ? selectedColor : unselectedColor,
         ),
       ),
       onTap: () {
-        Navigator.pop(context);
         setState(() {
           _selectedIndex = index;
+          Navigator.pop(context);
         });
       },
     );
@@ -328,9 +321,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
-  void _showAddEventModal(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showAddEventModal(BuildContext context) async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
@@ -427,9 +419,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     searchable: true,
                   ),
                   SizedBox(height: 16.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _image == null
+                            ? Text('No image selected')
+                            : Image.file(_image!),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.add_a_photo),
+                        onPressed: _pickImage,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.0),
                   ElevatedButton(
-                    onPressed: () {
-                      _addEvent();
+                    onPressed: () async {
+                      final imageUrl = await _uploadImage();
+                      _addEvent(imageUrl);
                       Navigator.pop(context); // Close the modal
                     },
                     style: ElevatedButton.styleFrom(
@@ -457,36 +464,61 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
-  void _selectDate(BuildContext context) async {
-    DateTime initialDate = DateTime.now();
-    DateTime newDate = await showDatePicker(
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: _selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-    ) ??
-        initialDate;
+    );
 
-    setState(() {
-      _selectedDate = newDate;
-    });
+    if (pickedDate != null && pickedDate != _selectedDate) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    }
   }
 
-  void _selectTime(BuildContext context) async {
-    TimeOfDay initialTime = TimeOfDay.now();
-    TimeOfDay newTime = await showTimePicker(
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: initialTime,
-    ) ??
-        initialTime;
+      initialTime: _selectedTime,
+    );
 
-    setState(() {
-      _selectedTime = newTime;
-    });
+    if (pickedTime != null && pickedTime != _selectedTime) {
+      setState(() {
+        _selectedTime = pickedTime;
+      });
+    }
   }
 
-  void _addEvent() async {
+  Future<void> _pickImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<String?> _uploadImage() async {
+    if (_image == null) return null;
+
+    try {
+      final storageRef = FirebaseStorage.instance.ref().child('event_images').child(DateTime.now().toIso8601String());
+      final uploadTask = storageRef.putFile(_image!);
+      final snapshot = await uploadTask.whenComplete(() {});
+      final imageUrl = await snapshot.ref.getDownloadURL();
+      return imageUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+
+  void _addEvent(String? imageUrl) async {
     final User? user = FirebaseAuth.instance.currentUser;
     final userEmail = user?.email ?? '';
     final userName = user?.displayName ?? '';
@@ -507,7 +539,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       'rsvpCount': 0,
-      'tags': _selectedTags, // Add the selected tags here
+      'tags': _selectedTags,
+      'image': imageUrl, // Add the image URL here
     });
 
     // Clear the controllers and reset the selected date and time
@@ -519,40 +552,31 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedDate = DateTime.now();
       _selectedTime = TimeOfDay.now();
       _selectedTags.clear(); // Clear the selected tags
+      _image = null; // Clear the selected image
     });
   }
 
-
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  void _showProfileOptions(BuildContext context, String userEmail) {
-    showModalBottomSheet(
+  Future<void> _showProfileOptions(BuildContext context, String userEmail) async {
+    final action = await showDialog<String>(
       context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-      ),
       builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
+        return AlertDialog(
+          title: Text('Profile Options'),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               ListTile(
-                leading: Icon(Iconsax.logout, color: Colors.red),
-                title: Text('Logout', style: GoogleFonts.montserrat(color: Colors.red)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => AuthScreen()),
-                  );
+                leading: Icon(Iconsax.user),
+                title: Text('View Profile'),
+                onTap: () {
+                  Navigator.pop(context, 'view');
+                },
+              ),
+              ListTile(
+                leading: Icon(Iconsax.logout),
+                title: Text('Log Out'),
+                onTap: () {
+                  Navigator.pop(context, 'logout');
                 },
               ),
             ],
@@ -560,5 +584,20 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+
+    if (action == 'logout') {
+      await FirebaseAuth.instance.signOut();
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => AuthScreen()));
+    } else if (action == 'view') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen(userId: userEmail)));
+    }
+  }
+
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

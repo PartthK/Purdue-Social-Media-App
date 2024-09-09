@@ -61,14 +61,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           ),
           child: AppBar(
             title: Text('Event Details', style: GoogleFonts.montserrat()),
-            backgroundColor: Colors.transparent, // Make the AppBar background transparent
-            elevation: 0, // Remove AppBar shadow
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()), // Ensure HomeScreen is imported
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
                 );
               },
             ),
@@ -108,6 +108,17 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                 ),
               ),
+              SizedBox(height: 16),
+              if (widget.event.image != null) // Check if there's an image URL
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Image.network(
+                      widget.event.image!,
+                      width: constraints.maxWidth,
+                      fit: BoxFit.cover,
+                    );
+                  },
+                ),
               SizedBox(height: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +162,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     child: !_hasRSVPed
                         ? ElevatedButton(
                       onPressed: () => _incrementRSVPCount(widget.event.documentId),
-                      child: Text('RSVP', style: TextStyle(color: Theme.of(context).primaryColor),),
+                      child: Text('RSVP', style: TextStyle(color: Theme.of(context).primaryColor)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                         textStyle: TextStyle(fontSize: 16),
@@ -240,7 +251,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     }
   }
 
-
   Future<void> _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
@@ -248,7 +258,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       throw 'Could not launch $url';
     }
   }
-
 
   void _incrementRSVPCount(String documentId) async {
     if (_userId != null) {
