@@ -1,5 +1,3 @@
-// File: profile_screen.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<String> userFriends = [];
   List<Map<String, dynamic>> userEvents = [];
   String? bio = '';
+  String? name = '';
   List<String> _allTags = ['Tech', 'AI/ML', 'Music', 'Biology', 'Physics', 'Sports', 'Art'];
   List<String> selectedTags = [];
 
@@ -46,14 +45,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchUserInterests();
     _fetchUserFriends();
     _fetchUserEvents();
-    _fetchBio();
+    _fetchProfileInfo();
+  }
+
+  /// Fetches profile information from Firestore.
+  void _fetchProfileInfo() async {
+    try {
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+      setState(() {
+        name = currentUserDoc['name'] ?? '';
+        bio = currentUserDoc['bio'] ?? '';
+        selectedTags = List<String>.from(currentUserDoc['tags'] ?? []);
+        _profileImageUrl = currentUserDoc['profileImageUrl'];
+      });
+    } catch (e) {
+      print('Error fetching profile info: $e');
+    }
   }
 
   /// Fetches user interests (tags) from Firestore.
   void _fetchUserInterests() async {
     try {
-      final currentUserDoc =
-      await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
       List<String> interests = List<String>.from(currentUserDoc['tags'] ?? []);
       setState(() {
         userInterests = interests;
@@ -67,8 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Fetches user friends from Firestore.
   void _fetchUserFriends() async {
     try {
-      final currentUserDoc =
-      await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
       List<String> friends = List<String>.from(currentUserDoc['friends'] ?? []);
       setState(() {
         userFriends = friends;
@@ -87,9 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .get();
 
       setState(() {
-        userEvents = eventSnapshot.docs
-            .map((doc) => {'documentId': doc.id, ...doc.data() as Map<String, dynamic>})
-            .toList();
+        userEvents = eventSnapshot.docs.map((doc) => {'documentId': doc.id, ...doc.data() as Map<String, dynamic>}).toList();
       });
     } catch (e) {
       print('Error fetching user events: $e');
@@ -99,8 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Fetches the count of user friends.
   void _fetchFriendCount() async {
     try {
-      final currentUserDoc =
-      await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
       List<String> friends = List<String>.from(currentUserDoc['friends'] ?? []);
 
       setState(() {
@@ -114,10 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Fetches the count of user events.
   void _fetchEventCount() async {
     try {
-      QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
-          .collection('events')
-          .where('username', isEqualTo: widget.userId)
-          .get();
+      QuerySnapshot eventSnapshot = await FirebaseFirestore.instance.collection('events').where('username', isEqualTo: widget.userId).get();
 
       setState(() {
         eventCount = eventSnapshot.docs.length;
@@ -127,28 +133,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Fetches the user's bio from Firestore.
-  void _fetchBio() async {
-    try {
-      final currentUserDoc =
-      await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
-      String userBio = currentUserDoc['bio'] ?? '';
-      setState(() {
-        bio = userBio;
-      });
-    } catch (e) {
-      print('Error fetching bio: $e');
-    }
-  }
-
   /// Checks the friendship status between the current user and the profile user.
   void _checkFriendshipStatus() async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
       try {
-        final currentUserDoc =
-        await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
+        final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
         List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
         if (currentUserFriends.contains(widget.userId)) {
           setState(() {
@@ -180,7 +171,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Builds the profile screen UI.
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -246,7 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           // Extract user data
           final data = snapshot.data!.data() as Map<String, dynamic>;
-          final name = data['name'] ?? 'N/A';
+          final userName = data['name'] ?? 'N/A';
           _profileImageUrl = data['profileImageUrl'] ?? null;
 
           return SingleChildScrollView(
@@ -288,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(height: 10.0),
                           // User Name
                           Text(
-                            name,
+                            userName,
                             style: GoogleFonts.montserrat(
                               color: Colors.white,
                               fontSize: 24.0,
@@ -354,21 +344,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (currentUser?.email != widget.userId)
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: buttonText == 'Send Friend Request' ||
-                                buttonText == 'Sent Request'
+                            onPressed: buttonText == 'Send Friend Request' || buttonText == 'Sent Request'
                                 ? () async {
                               await sendFriendRequest(widget.userId);
                             }
                                 : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonText == 'Sent Request'
-                                  ? Colors.grey
-                                  : Colors.orangeAccent,
+                              backgroundColor: buttonText == 'Sent Request' ? Colors.grey : Colors.orangeAccent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 24.0, vertical: 16.0),
+                              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                             ),
                             child: Text(
                               buttonText,
@@ -389,8 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Center(
                     child: Column(
                       children: [
-                        Icon(Icons.camera_alt_outlined,
-                            color: Colors.white38, size: 100),
+                        Icon(Icons.camera_alt_outlined, color: Colors.white38, size: 100),
                         Text(
                           'No Events Posted Yet',
                           style: GoogleFonts.montserrat(
@@ -413,13 +398,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         leading: Icon(Icons.event, color: Colors.orangeAccent),
                         title: Text(
                           event['title'] ?? 'No Title',
-                          style: GoogleFonts.montserrat(
-                              color: Colors.white, fontSize: 18.0),
+                          style: GoogleFonts.montserrat(color: Colors.white, fontSize: 18.0),
                         ),
                         subtitle: Text(
                           event['description'] ?? 'No Description',
-                          style: GoogleFonts.montserrat(
-                              color: Colors.white70, fontSize: 14.0),
+                          style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 14.0),
                         ),
                         onTap: () {
                           Navigator.push(
@@ -475,8 +458,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
-        padding:
-        EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       ),
       child: Text(
         text,
@@ -492,22 +474,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Handles profile image picking and uploading.
   Future<void> _pickImage() async {
     try {
-      final XFile? image =
-      await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         final file = File(image.path);
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('profile_images')
-            .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final storageRef = FirebaseStorage.instance.ref().child('profile_images').child('${DateTime.now().millisecondsSinceEpoch}.jpg');
         final uploadTask = storageRef.putFile(file);
         final snapshot = await uploadTask.whenComplete(() => null);
         final downloadUrl = await snapshot.ref.getDownloadURL();
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.userId)
-            .update({
+        await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
           'profileImageUrl': downloadUrl,
         });
 
@@ -525,13 +500,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        final currentUserDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.email)
-            .get();
+        final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.email).get();
 
-        List<String> currentUserFriends =
-        List<String>.from(currentUserDoc['friends'] ?? []);
+        List<String> currentUserFriends = List<String>.from(currentUserDoc['friends'] ?? []);
         if (currentUserFriends.contains(friendId)) {
           setState(() {
             buttonText = 'Friends';
@@ -539,13 +510,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return;
         }
 
-        QuerySnapshot snapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(friendId)
-            .collection('friendRequests')
-            .where('from', isEqualTo: currentUser.email)
-            .where('status', isEqualTo: 'pending')
-            .get();
+        QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('users').doc(friendId).collection('friendRequests').where('from', isEqualTo: currentUser.email).where('status', isEqualTo: 'pending').get();
 
         if (snapshot.docs.isNotEmpty) {
           setState(() {
@@ -554,11 +519,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return;
         }
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(friendId)
-            .collection('friendRequests')
-            .add({
+        await FirebaseFirestore.instance.collection('users').doc(friendId).collection('friendRequests').add({
           'from': currentUser.email,
           'status': 'pending',
           'timestamp': FieldValue.serverTimestamp(),
@@ -567,18 +528,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           buttonText = 'Sent Request';
         });
-
-        // Send push notification (requires additional setup)
-        // Uncomment and configure the following lines if Firebase Messaging is set up
-        /*
-        await FirebaseMessaging.instance.sendMessage(
-          to: friendId, // This should be the FCM token of the friend
-          data: {
-            'title': 'Friend Request',
-            'body': '${currentUser.email} sent you a friend request',
-          },
-        );
-        */
 
         print('Friend request sent.');
       } catch (e) {
@@ -592,24 +541,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-        Text('Interests', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
+        title: Text('Interests', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
         content: userInterests.isNotEmpty
             ? Wrap(
           spacing: 8.0,
           runSpacing: 4.0,
-          children: userInterests
-              .map((interest) => Chip(
+          children: userInterests.map((interest) => Chip(
             label: Text(interest),
             backgroundColor: Colors.orangeAccent,
             labelStyle: GoogleFonts.montserrat(color: Colors.white),
-          ))
-              .toList(),
+          )).toList(),
         )
-            : Text(
-          'No interests available',
-          style: GoogleFonts.montserrat(),
-        ),
+            : Text('No interests available', style: GoogleFonts.montserrat()),
         actions: [
           TextButton(
             child: Text('Close', style: GoogleFonts.montserrat()),
@@ -627,8 +570,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-        Text('Friends', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
+        title: Text('Friends', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
         content: userFriends.isNotEmpty
             ? Container(
           width: double.maxFinite,
@@ -639,27 +581,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               final friendId = userFriends[index];
               return ListTile(
                 leading: Icon(Icons.person, color: Colors.orangeAccent),
-                title: Text(
-                  friendId,
-                  style: GoogleFonts.montserrat(),
-                ),
+                title: Text(friendId, style: GoogleFonts.montserrat()),
                 onTap: () {
                   Navigator.pop(context); // Close the dialog
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileScreen(userId: friendId),
-                    ),
+                    MaterialPageRoute(builder: (context) => ProfileScreen(userId: friendId)),
                   );
                 },
               );
             },
           ),
         )
-            : Text(
-          'No friends available',
-          style: GoogleFonts.montserrat(),
-        ),
+            : Text('No friends available', style: GoogleFonts.montserrat()),
         actions: [
           TextButton(
             child: Text('Close', style: GoogleFonts.montserrat()),
@@ -677,8 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-        Text('Events', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
+        title: Text('Events', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
         content: userEvents.isNotEmpty
             ? Container(
           width: double.maxFinite,
@@ -689,14 +622,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               final event = userEvents[index];
               return ListTile(
                 leading: Icon(Icons.event, color: Colors.orangeAccent),
-                title: Text(
-                  event['title'] ?? 'No Title',
-                  style: GoogleFonts.montserrat(),
-                ),
-                subtitle: Text(
-                  event['description'] ?? 'No Description',
-                  style: GoogleFonts.montserrat(),
-                ),
+                title: Text(event['title'] ?? 'No Title', style: GoogleFonts.montserrat()),
+                subtitle: Text(event['description'] ?? 'No Description', style: GoogleFonts.montserrat()),
                 onTap: () {
                   Navigator.pop(context); // Close the dialog
                   Navigator.push(
@@ -712,10 +639,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
         )
-            : Text(
-          'No events available',
-          style: GoogleFonts.montserrat(),
-        ),
+            : Text('No events available', style: GoogleFonts.montserrat()),
         actions: [
           TextButton(
             child: Text('Close', style: GoogleFonts.montserrat()),
@@ -730,15 +654,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Displays a dialog to edit the user's profile.
   void _showEditProfileDialog() {
-    final TextEditingController nameController =
-    TextEditingController(text: '');
-    final TextEditingController bioController =
-    TextEditingController(text: '');
+    final TextEditingController nameController = TextEditingController(text: name);
+    final TextEditingController bioController = TextEditingController(text: bio);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-        Text('Edit Profile', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
+        title: Text('Edit Profile', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -764,9 +686,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 10),
               // Interests Selection
               MultiSelectDialogField(
-                items: _allTags
-                    .map((tag) => MultiSelectItem<String>(tag, tag))
-                    .toList(),
+                items: _allTags.map((tag) => MultiSelectItem<String>(tag, tag)).toList(),
                 initialValue: selectedTags,
                 onConfirm: (values) {
                   setState(() {
@@ -778,10 +698,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 selectedColor: Colors.orangeAccent,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(4)),
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1,
-                  ),
+                  border: Border.all(color: Colors.grey, width: 1),
                 ),
                 searchable: true,
               ),
@@ -804,35 +721,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
               final newBio = bioController.text.trim();
 
               if (newName.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Name cannot be empty')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Name cannot be empty')));
                 return;
               }
 
               try {
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(widget.userId)
-                    .update({
+                await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
                   'name': newName,
                   'bio': newBio,
                   'tags': selectedTags,
                 });
 
                 setState(() {
-                  // Update local state if necessary
+                  name = newName;
+                  bio = newBio;
                 });
 
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Profile updated successfully')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
               } catch (e) {
                 print('Error updating profile: $e');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to update profile')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update profile')));
               }
             },
           ),
