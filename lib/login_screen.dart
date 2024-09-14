@@ -33,10 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       try {
         await Provider.of<custom_auth.AuthProvider>(context, listen: false).login(email, password);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
+
       } on FirebaseAuthException catch (e) {
         setState(() {
           if (e.code == 'invalid-credential') {
