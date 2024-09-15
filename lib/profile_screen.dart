@@ -99,12 +99,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .get();
 
       setState(() {
-        userEvents = eventSnapshot.docs.map((doc) => {'documentId': doc.id, ...doc.data() as Map<String, dynamic>}).toList();
+        userEvents = eventSnapshot.docs.map((doc) => {
+          'documentId': doc.id,
+          ...doc.data() as Map<String, dynamic>
+        }).toList();
       });
     } catch (e) {
       print('Error fetching user events: $e');
     }
   }
+
+  /// Refreshes the events list after an event is created or updated
+  void _refreshEvents() {
+    try {
+      // Fetch the updated events list
+      _fetchUserEvents();
+
+      // Use setState to trigger a UI update
+      setState(() {
+        // The UI will rebuild with the latest events
+      });
+    } catch (e) {
+      print('Error refreshing events: $e');
+    }
+  }
+
+  /// Example method for creating a new event
+  Future<void> _createEvent() async {
+    try {
+      // Example of creating an event in Firestore
+      await FirebaseFirestore.instance.collection('events').add({
+        'username': widget.userId,
+        'title': 'New Event',
+        'description': 'Event Description',
+        // Add other event fields here
+      });
+
+      // After creating the event, refresh the events list to show it immediately
+      _refreshEvents();  // Call _refreshEvents without awaiting
+    } catch (e) {
+      print('Error creating event: $e');
+    }
+  }
+
 
   /// Fetches the count of user friends.
   void _fetchFriendCount() async {
