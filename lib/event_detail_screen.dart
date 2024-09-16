@@ -63,15 +63,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             title: Text('Event Details', style: GoogleFonts.montserrat()),
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                );
-              },
-            ),
           ),
         ),
       ),

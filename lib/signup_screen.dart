@@ -171,18 +171,14 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
               SizedBox(height: 16.0),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                  );
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
                 },
                 child: Text(
-                  'Already have an account? Log in',
+                  'Already Have an Account? Log In',
                   style: GoogleFonts.montserrat(
                     color: _isDarkMode ? Colors.white : Colors.black,
-                    decoration: TextDecoration.underline,
                   ),
                 ),
               ),

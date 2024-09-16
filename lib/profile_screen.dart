@@ -230,15 +230,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: Text('Profile', style: GoogleFonts.montserrat()),
             backgroundColor: Colors.transparent, // Make the AppBar background transparent
             elevation: 0, // Remove AppBar shadow
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                );
-              },
-            ),
           ),
         ),
       ),
@@ -620,7 +611,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 leading: Icon(Icons.person, color: Colors.orangeAccent),
                 title: Text(friendId, style: GoogleFonts.montserrat()),
                 onTap: () {
-                  Navigator.pop(context); // Close the dialog
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => ProfileScreen(userId: friendId)),
@@ -662,7 +652,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: Text(event['title'] ?? 'No Title', style: GoogleFonts.montserrat()),
                 subtitle: Text(event['description'] ?? 'No Description', style: GoogleFonts.montserrat()),
                 onTap: () {
-                  Navigator.pop(context); // Close the dialog
                   Navigator.push(
                     context,
                     MaterialPageRoute(
