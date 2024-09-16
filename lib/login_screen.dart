@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'auth_provider.dart' as custom_auth;
@@ -19,34 +18,36 @@ class _LoginScreenState extends State<LoginScreen> {
   String _validationMessage = '';
   bool _isDarkMode = true;
 
+  // Method to show an alert dialog
+  void _showAlertDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();  // Close the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _validateAndLogin() async {
     String email = _emailController.text;
     String password = _passwordController.text;
 
     if (!email.endsWith('@purdue.edu')) {
-      setState(() {
-        _validationMessage = 'Only @purdue.edu emails are allowed';
-      });
+      _showAlertDialog('Invalid Email', 'Only @purdue.edu emails are allowed');
     } else {
-      setState(() {
-        _validationMessage = '';
-      });
-      try {
         await Provider.of<custom_auth.AuthProvider>(context, listen: false).login(email, password);
-
-      } on FirebaseAuthException catch (e) {
-        setState(() {
-          if (e.code == 'invalid-credential') {
-            _validationMessage = 'The supplied auth credential is incorrect, malformed or has expired.';
-          } else if (e.code == 'user-not-found') {
-            _validationMessage = 'No user found for that email.';
-          } else if (e.code == 'wrong-password') {
-            _validationMessage = 'Wrong password provided for that user.';
-          } else {
-            _validationMessage = 'An unexpected error occurred. Please try again.';
-          }
-        });
-      }
+        _showAlertDialog('Wrong Password', 'Please try again!');
     }
   }
 
