@@ -274,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Stack(
                   children: [
                     Container(
-                      height: 200.0,
+                      height: 250.0,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Colors.orangeAccent, Colors.deepOrange],

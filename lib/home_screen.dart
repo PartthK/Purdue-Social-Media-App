@@ -566,13 +566,6 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ListTile(
-                leading: Icon(Iconsax.user),
-                title: Text('View Profile'),
-                onTap: () {
-                  Navigator.pop(context, 'view');
-                },
-              ),
-              ListTile(
                 leading: Icon(Iconsax.logout),
                 title: Text('Log Out'),
                 onTap: () {
