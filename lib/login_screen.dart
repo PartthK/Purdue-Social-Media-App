@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _showAlertDialog('Invalid Email', 'Only @purdue.edu emails are allowed');
     } else {
         await Provider.of<custom_auth.AuthProvider>(context, listen: false).login(email, password);
-        _showAlertDialog('Wrong Password', 'Please try again!');
+        _showAlertDialog('Wrong Email or Password', 'Please try again!');
     }
   }
 
