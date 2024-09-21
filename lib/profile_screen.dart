@@ -264,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           GestureDetector(
-                            onTap: _pickImage,
+                            onTap: FirebaseAuth.instance.currentUser?.email == widget.userId ? _pickImage : null,
                             child: CircleAvatar(
                               radius: 50,
                               backgroundImage: _profileImageUrl != null
