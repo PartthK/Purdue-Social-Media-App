@@ -192,6 +192,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      appBar: FirebaseAuth.instance.currentUser?.email == widget.userId
+          ? null // Hide the AppBar if it's the current user's profile
+          : PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.orangeAccent, Colors.deepOrange],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            title: Text('Profile', style: GoogleFonts.montserrat()),
+            backgroundColor: Colors.transparent, // Make the AppBar background transparent
+            elevation: 0, // Remove AppBar shadow
+          ),
+        ),
+      ),
       backgroundColor: isDarkMode ? Colors.black : Colors.white,
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('users').doc(widget.userId).get(),
