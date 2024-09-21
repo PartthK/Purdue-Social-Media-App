@@ -52,28 +52,30 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
-            color: Color(0xFF0D1114),
+            color: isDarkMode ? Color(0xFF0D1114) : Colors.white,
           ),
           child: AppBar(
-            title: Text('Event Details', style: GoogleFonts.montserrat()),
+            title: Text('Event Details', style: GoogleFonts.montserrat(color: isDarkMode ? Colors.white : Colors.black)),
             backgroundColor: Colors.transparent,
             elevation: 0,
           ),
         ),
       ),
-      backgroundColor: Color(0xFF0D1114),
+      backgroundColor: isDarkMode ? Color(0xFF0D1114) : Colors.white,
       body: DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, controller) => Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
+            color: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: ListView(
@@ -100,7 +102,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 ),
               ),
               SizedBox(height: 16),
-              if (widget.event.image != null) // Check if there's an image URL
+              if (widget.event.image != null)
                 LayoutBuilder(
                   builder: (context, constraints) {
                     return Image.network(
@@ -114,19 +116,19 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow(Icons.calendar_today, 'Date', DateFormat('MMM d, y - h:mm a').format(widget.event.date)),
-                  _buildInfoRow(Icons.location_on, 'Location', ''),
-                  _buildInfoRow(Icons.person, 'Created by', widget.event.createdBy),
-                  _buildInfoRow(Icons.group, 'RSVP Count', '$_currentRSVPCount'),
+                  _buildInfoRow(Icons.calendar_today, 'Date', DateFormat('MMM d, y - h:mm a').format(widget.event.date), isDarkMode),
+                  _buildInfoRow(Icons.location_on, 'Location', '', isDarkMode),
+                  _buildInfoRow(Icons.person, 'Created by', widget.event.createdBy, isDarkMode),
+                  _buildInfoRow(Icons.group, 'RSVP Count', '$_currentRSVPCount', isDarkMode),
                   SizedBox(height: 16),
                   Text(
                     'Description',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.black),
                   ),
                   SizedBox(height: 8),
                   Text(
                     widget.event.description,
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white70 : Colors.black87),
                   ),
                   SizedBox(height: 20),
                   Text('Tags:', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
@@ -137,13 +139,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     children: widget.event.tags.map((tag) {
                       return Chip(
                         label: Text(tag),
-                        backgroundColor: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black,
+                        backgroundColor: isDarkMode ? Colors.white : Colors.black,
                         labelStyle: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.black
-                              : Colors.white,
+                          color: isDarkMode ? Colors.black : Colors.white,
                         ),
                       );
                     }).toList(),
@@ -153,7 +151,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     child: !_hasRSVPed
                         ? ElevatedButton(
                       onPressed: () => _incrementRSVPCount(widget.event.documentId),
-                      child: Text('RSVP', style: TextStyle(color: Theme.of(context).primaryColor)),
+                      child: Text('RSVP', style: TextStyle(color: isDarkMode ? Colors.black : Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                         textStyle: TextStyle(fontSize: 16),
@@ -177,7 +175,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value, bool isDarkMode) {
     if (label == 'Location') {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -191,7 +189,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Colors.white,
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
                 children: [
                   TextSpan(
@@ -228,12 +226,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             SizedBox(width: 8),
             Text(
               '$label: ',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDarkMode ? Colors.white : Colors.black),
             ),
             Expanded(
               child: Text(
                 value,
-                style: TextStyle(fontSize: 16, color: Colors.white, decoration: TextDecoration.none),
+                style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white70 : Colors.black87, decoration: TextDecoration.none),
               ),
             ),
           ],
@@ -278,30 +276,4 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       });
     }
   }
-}
-
-void showEventDetails(BuildContext context, Event event) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => DraggableScrollableSheet(
-      initialChildSize: 0.9,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      builder: (_, controller) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).canvasColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: ListView(
-          controller: controller,
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // Your event details here
-          ],
-        ),
-      ),
-    ),
-  );
 }

@@ -5,13 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
-
 import 'event_detail_screen.dart';
 import 'event_model.dart';
-import 'home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -24,6 +21,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
+  bool isDarkMode = false;
   String? _profileImageUrl;
   String buttonText = 'Send Friend Request';
   int eventCount = 0;
@@ -48,7 +46,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchProfileInfo();
   }
 
-  /// Fetches profile information from Firestore.
   void _fetchProfileInfo() async {
     try {
       final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
@@ -63,7 +60,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Fetches user interests (tags) from Firestore.
   void _fetchUserInterests() async {
     try {
       final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
@@ -77,7 +73,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Fetches user friends from Firestore.
   void _fetchUserFriends() async {
     try {
       final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
@@ -90,7 +85,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Fetches user events from Firestore.
   void _fetchUserEvents() async {
     try {
       QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
@@ -109,41 +103,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Refreshes the events list after an event is created or updated
   void _refreshEvents() {
     try {
-      // Fetch the updated events list
       _fetchUserEvents();
-
-      // Use setState to trigger a UI update
-      setState(() {
-        // The UI will rebuild with the latest events
-      });
+      setState(() {});
     } catch (e) {
       print('Error refreshing events: $e');
     }
   }
 
-  /// Example method for creating a new event
   Future<void> _createEvent() async {
     try {
-      // Example of creating an event in Firestore
       await FirebaseFirestore.instance.collection('events').add({
         'username': widget.userId,
         'title': 'New Event',
         'description': 'Event Description',
-        // Add other event fields here
       });
-
-      // After creating the event, refresh the events list to show it immediately
-      _refreshEvents();  // Call _refreshEvents without awaiting
+      _refreshEvents();
     } catch (e) {
       print('Error creating event: $e');
     }
   }
 
-
-  /// Fetches the count of user friends.
   void _fetchFriendCount() async {
     try {
       final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
@@ -157,7 +138,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Fetches the count of user events.
   void _fetchEventCount() async {
     try {
       QuerySnapshot eventSnapshot = await FirebaseFirestore.instance.collection('events').where('username', isEqualTo: widget.userId).get();
@@ -170,7 +150,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Checks the friendship status between the current user and the profile user.
   void _checkFriendshipStatus() async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
@@ -210,59 +189,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final currentUser = FirebaseAuth.instance.currentUser;
+    isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: currentUser?.email == widget.userId
-          ? null // Hide the AppBar if it's the current user's profile
-          : PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.orangeAccent, Colors.deepOrange],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: AppBar(
-            title: Text('Profile', style: GoogleFonts.montserrat()),
-            backgroundColor: Colors.transparent, // Make the AppBar background transparent
-            elevation: 0, // Remove AppBar shadow
-          ),
-        ),
-      ),
-      backgroundColor: Color(0xFF0D1114),
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('users').doc(widget.userId).get(),
         builder: (context, snapshot) {
-          // Show loading indicator while fetching data
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
 
-          // Handle errors
           if (snapshot.hasError) {
             return Center(
               child: Text(
                 'Error fetching profile details',
-                style: GoogleFonts.montserrat(fontSize: 24.0, color: Colors.white),
+                style: GoogleFonts.montserrat(fontSize: 24.0, color: isDarkMode ? Colors.white : Colors.black),
               ),
             );
           }
 
-          // Handle case when profile does not exist
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return Center(
               child: Text(
                 'Profile not found',
-                style: GoogleFonts.montserrat(fontSize: 24.0, color: Colors.white),
+                style: GoogleFonts.montserrat(fontSize: 24.0, color: isDarkMode ? Colors.white : Colors.black),
               ),
             );
           }
 
-          // Extract user data
           final data = snapshot.data!.data() as Map<String, dynamic>;
           final userName = data['name'] ?? 'N/A';
           _profileImageUrl = data['profileImageUrl'] ?? null;
@@ -270,7 +225,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Profile Header with background gradient and avatar
                 Stack(
                   children: [
                     Container(
@@ -290,7 +244,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Profile Image
                           GestureDetector(
                             onTap: _pickImage,
                             child: CircleAvatar(
@@ -304,23 +257,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           SizedBox(height: 10.0),
-                          // User Name
                           Text(
                             userName,
                             style: GoogleFonts.montserrat(
-                              color: Colors.white,
+                              color: isDarkMode ? Colors.white : Colors.black,
                               fontSize: 24.0,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          // User Bio
                           if (bio != null && bio!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                               child: Text(
                                 bio!,
                                 style: GoogleFonts.montserrat(
-                                  color: Colors.white70,
+                                  color: isDarkMode ? Colors.white70 : Colors.black54,
                                   fontSize: 16.0,
                                 ),
                                 textAlign: TextAlign.center,
@@ -332,44 +283,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 SizedBox(height: 20.0),
-                // Counters for Events and Friends
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       GestureDetector(
-                        onTap: _showEventsDialog, // Show events pop-up
-                        child: _buildCounter('Events', eventCount),
+                        onTap: _showEventsDialog,
+                        child: _buildCounter('Events', eventCount, isDarkMode),
                       ),
                       GestureDetector(
-                        onTap: _showFriendsDialog, // Show friends pop-up
-                        child: _buildCounter('Friends', friendCount),
+                        onTap: _showFriendsDialog,
+                        child: _buildCounter('Friends', friendCount, isDarkMode),
                       ),
                     ],
                   ),
                 ),
-                // Action Buttons
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // Edit Profile Button (only visible to the profile owner)
-                      if (currentUser?.email == widget.userId)
+                      if (FirebaseAuth.instance.currentUser?.email == widget.userId)
                         Expanded(
-                          child: _buildProfileButton('Edit Profile', _showEditProfileDialog),
+                          child: _buildProfileButton('Edit Profile', _showEditProfileDialog, isDarkMode),
                         ),
-                      if (currentUser?.email == widget.userId)
-                        SizedBox(width: 10), // Spacing between buttons
-                      // Interests Button
+                      SizedBox(width: 10),
                       Expanded(
-                        child: _buildProfileButton('Interests', _showInterestsDialog),
+                        child: _buildProfileButton('Interests', _showInterestsDialog, isDarkMode),
                       ),
-                      // Send Friend Request Button (only visible to other users)
-                      if (currentUser?.email != widget.userId)
-                        SizedBox(width: 10), // Spacing between buttons
-                      if (currentUser?.email != widget.userId)
+                      if (FirebaseAuth.instance.currentUser?.email != widget.userId)
+                        SizedBox(width: 10),
+                      if (FirebaseAuth.instance.currentUser?.email != widget.userId)
                         Expanded(
                           child: ElevatedButton(
                             onPressed: buttonText == 'Send Friend Request' || buttonText == 'Sent Request'
@@ -378,7 +323,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             }
                                 : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonText == 'Sent Request' ? Colors.grey : Colors.orangeAccent,
+                              backgroundColor: buttonText == 'Already Friends'
+                                  ? Colors.red
+                                  : (buttonText == 'Sent Request' ? Colors.grey : Colors.orangeAccent),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
@@ -397,17 +344,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                Divider(color: Colors.white38),
-                // Placeholder for Events (if no events)
+                Divider(color: isDarkMode ? Colors.white38 : Colors.black38),
                 if (userEvents.isEmpty)
                   Center(
                     child: Column(
                       children: [
-                        Icon(Icons.camera_alt_outlined, color: Colors.white38, size: 100),
+                        Icon(Icons.camera_alt_outlined, color: isDarkMode ? Colors.white38 : Colors.black38, size: 100),
                         Text(
                           'No Events Posted Yet',
                           style: GoogleFonts.montserrat(
-                            color: Colors.white38,
+                            color: isDarkMode ? Colors.white38 : Colors.black38,
                             fontSize: 20.0,
                           ),
                         ),
@@ -415,7 +361,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   )
                 else
-                // List of User Events
                   ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
@@ -426,11 +371,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         leading: Icon(Icons.event, color: Colors.orangeAccent),
                         title: Text(
                           event['title'] ?? 'No Title',
-                          style: GoogleFonts.montserrat(color: Colors.white, fontSize: 18.0),
+                          style: GoogleFonts.montserrat(color: isDarkMode ? Colors.white : Colors.black, fontSize: 18.0),
                         ),
                         subtitle: Text(
                           event['description'] ?? 'No Description',
-                          style: GoogleFonts.montserrat(color: Colors.white70, fontSize: 14.0),
+                          style: GoogleFonts.montserrat(color: isDarkMode ? Colors.white70 : Colors.black54, fontSize: 14.0),
                         ),
                         onTap: () {
                           Navigator.push(
@@ -453,14 +398,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Builds a counter widget for Events and Friends.
-  Widget _buildCounter(String label, int count) {
+  Widget _buildCounter(String label, int count, bool isDarkMode) {
     return Column(
       children: [
         Text(
           '$count',
           style: GoogleFonts.montserrat(
-            color: Colors.white,
+            color: isDarkMode ? Colors.white : Colors.black,
             fontSize: 20.0,
             fontWeight: FontWeight.bold,
           ),
@@ -469,7 +413,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Text(
           label,
           style: GoogleFonts.montserrat(
-            color: Colors.white70,
+            color: isDarkMode ? Colors.white70 : Colors.black54,
             fontSize: 16.0,
           ),
         ),
@@ -477,12 +421,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Builds a profile action button.
-  Widget _buildProfileButton(String text, VoidCallback onPressed) {
+  Widget _buildProfileButton(String text, VoidCallback onPressed, bool isDarkMode) {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.grey[800],
+        backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
@@ -493,13 +436,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         style: GoogleFonts.montserrat(
           fontSize: 16.0,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: isDarkMode ? Colors.white : Colors.black,
         ),
       ),
     );
   }
 
-  /// Handles profile image picking and uploading.
   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -523,7 +465,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Sends a friend request to another user.
   Future<void> sendFriendRequest(String friendId) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
@@ -564,12 +505,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Displays a dialog with the user's interests.
   void _showInterestsDialog() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Interests', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        title: Text('Interests', style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.black)),
         content: userInterests.isNotEmpty
             ? Wrap(
           spacing: 8.0,
@@ -580,10 +523,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             labelStyle: GoogleFonts.montserrat(color: Colors.white),
           )).toList(),
         )
-            : Text('No interests available', style: GoogleFonts.montserrat()),
+            : Text('No interests available', style: GoogleFonts.montserrat(color: isDarkMode ? Colors.white : Colors.black)),
         actions: [
           TextButton(
-            child: Text('Close', style: GoogleFonts.montserrat()),
+            child: Text('Close', style: GoogleFonts.montserrat(color: isDarkMode ? Colors.white : Colors.black)),
             onPressed: () {
               Navigator.pop(context);
             },
@@ -593,7 +536,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Displays a dialog with the user's friends.
   void _showFriendsDialog() {
     showDialog(
       context: context,
@@ -633,7 +575,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Displays a dialog with the user's events.
   void _showEventsDialog() {
     showDialog(
       context: context,
@@ -678,7 +619,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Displays a dialog to edit the user's profile.
   void _showEditProfileDialog() {
     final TextEditingController nameController = TextEditingController(text: name);
     final TextEditingController bioController = TextEditingController(text: bio);
@@ -691,7 +631,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Name Input
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
@@ -700,7 +639,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               SizedBox(height: 10),
-              // Bio Input
               TextField(
                 controller: bioController,
                 decoration: InputDecoration(
@@ -710,7 +648,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 maxLines: 3,
               ),
               SizedBox(height: 10),
-              // Interests Selection
               MultiSelectDialogField(
                 items: _allTags.map((tag) => MultiSelectItem<String>(tag, tag)).toList(),
                 initialValue: selectedTags,
@@ -727,19 +664,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: Border.all(color: Colors.grey, width: 1),
                 ),
                 searchable: true,
+                itemsTextStyle: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                selectedItemsTextStyle: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
               ),
             ],
           ),
         ),
         actions: [
-          // Cancel Button
           TextButton(
             child: Text('Cancel', style: GoogleFonts.montserrat()),
             onPressed: () {
               Navigator.pop(context);
             },
           ),
-          // Save Button
           TextButton(
             child: Text('Save', style: GoogleFonts.montserrat()),
             onPressed: () async {
