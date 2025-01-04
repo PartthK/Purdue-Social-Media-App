@@ -1,4 +1,5 @@
-BoilerVibe: Your Purdue University Event Companion 🎉
+\title{BoilerVibe: Your Purdue University Event Companion 🎉}
+
 BoilerVibe is a Flutter-based mobile application designed to centralize all Purdue University event information, making it easy for students to stay updated and connected. Built with Firebase as the backend, this app offers a seamless and responsive user experience.
 
 Features:
